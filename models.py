@@ -96,6 +96,7 @@ class Appartenance:
         self.idGroupe = idGroupe
         self.dateAjout = dateAjout
         self.role = role
+        
     def ajoutMembre(sefl):
         values= (sefl.idUtilisateur, sefl.idGroupe,sefl.dateAjout,sefl.role)
         connexion.con.execute('INSERT INTO appartenance (idUtilisateur, idGroupe,dateAjout, role) VALUES(?,?,?,?)',
