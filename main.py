@@ -1,4 +1,4 @@
-import connexion, createUser
+import connexion, createUser, supprimeMembre, listerUtilisateur
 
 connexion.initialize()
 print("------------- Bienvenue sur Nianaboli, votre console de gestion de dépenses collaboratives -------------")
@@ -10,3 +10,5 @@ while(choix not in ("c", "i")):
 createUser.creationProcess(choix)
 
 connexion.con.close
+supprimeMembre.supprimerMembreDuGroupe
+listerUtilisateur.listerUtilisateurs
