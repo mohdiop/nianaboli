@@ -1,4 +1,4 @@
-import models, createUser, connexion
+import models, createUser, connexion, administrateur
 from datetime import datetime
 
 def creationGroupe(user: models.UtilisateurInfo):
@@ -24,3 +24,4 @@ def creationGroupe(user: models.UtilisateurInfo):
             values = (ajoutMembre.idUtilisateur, ajoutMembre.idGroupe, ajoutMembre.dateAjout, "MEMBRE")
             connexion.cursor.execute("INSERT INTO appartenance (idUtilisateur, idGroupe, dateAjout, role) VALUES (?, ?, ?, ?)", values)
         choix = int(input("Voulez-vous ajouter un membre? (1 = oui/ autres chiffres = non)\n"))
+    administrateur.userGroups(user)
