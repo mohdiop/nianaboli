@@ -1,7 +1,7 @@
 import createUser, sys, models
 
 def login():
-    print("Connexion\n\n")
+    print("\nConnexion\n")
     telephone = input("Votre numéro de téléphone: ")
     utilisateur = createUser.getUserByTel(telephone)
     while(utilisateur is None):
