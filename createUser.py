@@ -14,6 +14,7 @@ def creationProcess(choix):
    
 def getUserByTel(telephone: str):
     utilisateurTrouve = connexion.con.execute("SELECT * FROM utilisateur WHERE telephone = ?", (telephone,)).fetchone()
+    if (utilisateurTrouve is None) : return None
     utilisateur = models.Utilisateur(
         utilisateurTrouve[1],
         utilisateurTrouve[2],
