@@ -1,4 +1,4 @@
-import createUser, sys, models
+import createUser, sys, models, bcrypt
 
 def login():
     print("\nConnexion\n")
@@ -9,8 +9,9 @@ def login():
         utilisateur = createUser.getUserByTel(telephone)
 
     motDePasse = input("Votre mot de passe: ")
+    hashedMotDePasse = utilisateur.motDePasse
     i = 0
-    while(motDePasse != utilisateur.motDePasse):
+    while(not bcrypt.checkpw(motDePasse.encode(), hashedMotDePasse)):
         i = i+1
         motDePasse = input(f"Mot de passe incorrect! Tentative restant : {5-i} \nVotre mot de passe: ")
         if(i == 4):

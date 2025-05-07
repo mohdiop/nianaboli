@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 
 class Utilisateur:
-    def __init__(self, nom, prenom, telephone, motDePasse):
+    def __init__(self, nom, prenom, telephone, motDePasse: str):
         self.nom = nom
         self.prenom = prenom
         self.telephone = telephone

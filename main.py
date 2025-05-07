@@ -22,7 +22,7 @@ def authentification():
 def menuPrincipal(utilisateur: models.UtilisateurInfo):
     print(f"\nBienvenue {utilisateur.prenom} {utilisateur.nom} :)\n")
     print("----------------------------------------------------------------------------")
-    print("\n1.) Créer un groupe\n2.) Visualiser mes groupes\n3.) Se déconnecter\n")
+    print("\n1.) Créer un groupe\n2.) Visualiser mes groupes\n3.) Notifications\n4.) Se déconnecter\n")
 
     choix = int(input("Votre choix : "))
 
@@ -37,4 +37,4 @@ def menuPrincipal(utilisateur: models.UtilisateurInfo):
 if (__name__ == '__main__'):
     authentification() 
 
-connexion.con.close
+connexion.con.close()

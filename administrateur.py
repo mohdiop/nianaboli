@@ -59,7 +59,7 @@ def getRelatedGroups(userId):
 
 def viewMyGroups(user):
     groupes = getUserGroupsByUserId(user.id)
-    if(groupes is None):
+    if(groupes is None or groupes == []):
         print("\nVous n'avez créé aucun groupe\n")
     else:
         print("----------------------------------------------------------------------------")
@@ -67,11 +67,11 @@ def viewMyGroups(user):
             print(f"\nNom du groupe  : {groupe.nom}")
             print(f"\nCréé le        : {groupe.dateCreation}\n")
         print("----------------------------------------------------------------------------")
-        userGroups(user)
+    userGroups(user)
 
 def viewRelatedGroups(user):
     groupes = getRelatedGroups(user.id)
-    if(groupes is None):
+    if(groupes is None or groupes == []):
         print("\nVous ne faites partie d'aucun groupe\n")
     else:
         print("----------------------------------------------------------------------------")
@@ -81,7 +81,7 @@ def viewRelatedGroups(user):
             print(f"\nCréé le        : {groupe.dateCreation}")
             print(f"\nAdministrateur : {adminGroupe.prenom} {adminGroupe.nom}\n")
         print("----------------------------------------------------------------------------")
-        userGroups(user)
+    userGroups(user)
 
 def userGroups(user: models.UtilisateurInfo):
     print("\n1.) Mes groupes créés\n2.) Ceux dans lesquels je suis membre\n3.) Retour\n")
