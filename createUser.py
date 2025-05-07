@@ -1,16 +1,22 @@
 import connexion
 import models
 
-def creationProcess(choix): 
-    if (choix == "i"):
-        print("Inscription\n")
-        prenom = input("Votre prénom : ")
-        nom = input("Votre nom : ")
-        telephone = input("Votre telephone : ")
-        motDePasse = input("Votre mot de passe : ")
-        utilisateur = models.Utilisateur(nom, prenom, telephone, motDePasse)
-        utilisateur.creerCompte()
-        print("Votre compte a été créé avec succès!")
+def creationProcess(): 
+    print("Inscription\n")
+    prenom = input("Votre prénom : ")
+    nom = input("Votre nom : ")
+    telephone = input("Votre telephone : ")
+    motDePasse = input("Votre mot de passe : ")
+    utilisateur = models.Utilisateur(nom, prenom, telephone, motDePasse)
+    utilisateur.creerCompte()
+    utilisateur = getUserByTel(telephone)
+    user = models.UtilisateurInfo(
+        utilisateur.id,
+        utilisateur.nom,
+        utilisateur.prenom,
+        utilisateur.telephone
+    )
+    return user
    
 def getUserByTel(telephone: str):
     utilisateurTrouve = connexion.con.execute("SELECT * FROM utilisateur WHERE telephone = ?", (telephone,)).fetchone()
