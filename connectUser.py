@@ -1,24 +1,27 @@
-import connexion, createUser, sys
+import createUser, sys, models
 
-def login(choix):
-    if(choix == "c"):
-        print("Connexion\n\n")
-        telephone = input("Votre numéro de téléphone: ")
-        user = createUser.getUserByTel(telephone)
-        while(user is None):
-            telephone = input("Utilisateur introuvable! \nVérifiez votre numéro de téléphone: ")
-            user = createUser.getUserByTel(telephone)
+def login():
+    print("Connexion\n\n")
+    telephone = input("Votre numéro de téléphone: ")
+    utilisateur = createUser.getUserByTel(telephone)
+    while(utilisateur is None):
+        telephone = input("Utilisateur introuvable! \nVérifiez votre numéro de téléphone: ")
+        utilisateur = createUser.getUserByTel(telephone)
 
-        motDePasse = input("Votre mot de passe: ")
-        i = 0
-        while(motDePasse != user.motDePasse):
-            i = i+1
-            motDePasse = input(f"Mot de passe incorrect! Tentative restant : {5-i} \nVotre mot de passe: ")
-            if(i == 4):
-                sys.exit("Nombre de tentative dépassé")
-
-        print(f"Bienvenue {user.prenom} {user.nom} :)")
-        return True
+    motDePasse = input("Votre mot de passe: ")
+    i = 0
+    while(motDePasse != utilisateur.motDePasse):
+        i = i+1
+        motDePasse = input(f"Mot de passe incorrect! Tentative restant : {5-i} \nVotre mot de passe: ")
+        if(i == 4):
+            sys.exit("Nombre de tentative dépassé")
+            
+    return models.UtilisateurInfo(
+        utilisateur.id,
+        utilisateur.nom,
+        utilisateur.prenom,
+        utilisateur.telephone
+    )
 
 # query = "utilisateur(Telephone VARCHAR UNIQUE, Password VARCHAR)"
 

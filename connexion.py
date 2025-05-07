@@ -1,6 +1,7 @@
 import sqlite3
 
 con = sqlite3.connect("nianaboli.db")
+cursor = con.cursor()
 con.autocommit = True 
 
 def initialize():
