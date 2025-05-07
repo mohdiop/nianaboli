@@ -45,6 +45,6 @@ def initialize():
 
     # Création de la table recevoir_notification
     con.execute("CREATE TABLE IF NOT EXISTS " \
-    "recevoir_notification (idNotification INTEGER NOT NULL, idUtilisateur INTEGER NOT NULL, date TEXT NOT NULL, " \
+    "recevoir_notification (idNotification INTEGER NOT NULL, idUtilisateur INTEGER NOT NULL, date TEXT NOT NULL, estVu INTEGER CHECK(estVu IN (0,1)), " \
     "FOREIGN KEY(idNotification) REFERENCES notification(id), FOREIGN KEY(idUtilisateur) REFERENCES utilisateur(id), " \
     "PRIMARY KEY(idNotification, idUtilisateur))")

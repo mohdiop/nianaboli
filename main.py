@@ -1,4 +1,4 @@
-import connexion, createUser, connectUser, models, creationgroupe, sys, administrateur
+import connexion, createUser, connectUser, models, creationgroupe, sys, administrateur, notification
 
 connexion.initialize()
 
@@ -31,6 +31,8 @@ def menuPrincipal(utilisateur: models.UtilisateurInfo):
     elif(choix == 2): 
         administrateur.userGroups(utilisateur)
     elif(choix == 3):
+        notification.viewNotifications(utilisateur)
+    elif(choix == 4):
         utilisateur = None
         authentification()
 

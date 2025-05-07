@@ -23,5 +23,12 @@ def creationGroupe(user: models.UtilisateurInfo):
             )
             values = (ajoutMembre.idUtilisateur, ajoutMembre.idGroupe, ajoutMembre.dateAjout, "MEMBRE")
             connexion.cursor.execute("INSERT INTO appartenance (idUtilisateur, idGroupe, dateAjout, role) VALUES (?, ?, ?, ?)", values)
+            notification = models.Notification(
+                "Nouveau groupe",
+                f"Vous avez été ajouté au groupe {groupe.nom} par {user.prenom} {user.nom}"
+            )
+            connexion.cursor.execute("INSERT INTO notification (titre, contenu) VALUES (?, ?)", (notification.titre, notification.contenu))
+            idNotification = connexion.cursor.lastrowid
+            connexion.cursor.execute("INSERT INTO recevoir_notification (idNotification, idUtilisateur, date, estVu) VALUES (?, ?, ?, ?)", (idNotification, ajoutMembre.idUtilisateur, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 0))
         choix = int(input("Voulez-vous ajouter un membre? (1 = oui/ autres chiffres = non)\n"))
     administrateur.userGroups(user)
