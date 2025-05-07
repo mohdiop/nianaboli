@@ -26,11 +26,11 @@ def getUserByTel(telephone: str):
 def getUserById(id): 
     utilisateurTrouve = connexion.con.execute("SELECT * FROM utilisateur WHERE id = ?", (id,)).fetchone()
     utilisateur = models.UtilisateurInfo(
+        utilisateurTrouve[0],
         utilisateurTrouve[1],
         utilisateurTrouve[2],
         utilisateurTrouve[3]
     )
-    utilisateur.setId(utilisateurTrouve[0])
     return utilisateur
 
 def getAllUsers():

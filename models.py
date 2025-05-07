@@ -51,6 +51,9 @@ class Groupe:
         self.nom = nom
         self.dateCreation = dateCreation
         self.utilisateur = createUser.getUserById(idUtilisateur)
+
+    def __lt__(self, other):
+        return self.dateCreation < other.dateCreation
     
     def setId(self, id):
         self.id = id
