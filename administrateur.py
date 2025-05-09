@@ -9,11 +9,37 @@ def viewAllGroups():
     groupes = getAllGroups()
     for groupe in groupes:
         proprietaire = createUser.getUserById(groupe.utilisateur.id)
+        membres = getMembersByGroupId(groupe.id)
         print("----------------------------------------------------------------------------")
-        print("Nom du groupe : ", groupe.nom)
-        print("Créé par      : ", proprietaire.prenom, proprietaire.nom)
-        print("Le            : ", groupe.dateCreation)
+        print(groupes.index(groupe)+1)
+        print(f"Nom du groupe : {groupe.nom}")
+        print(f"Créé par      : {proprietaire.prenom} {proprietaire.nom}")
+        print(f"Le            : {groupe.dateCreation}")
+        print(f"\nLes membres du groupe {groupes.index(groupe)+1}\n")
+        for membre in membres: 
+            print(f"| Nom : {membre.utilisateur.prenom} {membre.utilisateur.nom} Tel : {membre.utilisateur.telephone} ajouté le {membre.dateAjout}")
     print("----------------------------------------------------------------------------")
+
+class UtilisateurInfoGroupe:
+    def __init__(self, utilisateur: models.UtilisateurInfo, dateAjout):
+        self.utilisateur = utilisateur
+        self.dateAjout = dateAjout
+
+def getMembersByGroupId(idGroup):
+    resources = connexion.cursor.execute("SELECT id, nom, prenom, telephone, appartenance.dateAjout FROM utilisateur INNER JOIN appartenance ON utilisateur.id = appartenance.idUtilisateur WHERE appartenance.idGroupe = ? AND role = 'MEMBRE'", (idGroup,))
+    membres = []
+    for resource in resources:
+        membre = UtilisateurInfoGroupe(
+            models.UtilisateurInfo(
+                resource[0],
+                resource[1],
+                resource[2],
+                resource[3]
+            ),
+            resource[4]
+        )
+        membres.append(membre)
+    return membres
 
 def getAllGroups():
     resources = connexion.con.execute("SELECT * FROM groupe").fetchall()
