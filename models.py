@@ -24,7 +24,7 @@ class UtilisateurInfo:
         self.telephone = telephone
 
     def creerGroupe(self, nom):
-        dateCreation = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        dateCreation = f"{datetime.now().strftime("%d-%m-%Y")} à {datetime.now().strftime("%H:%M:%S")}"
         values = (nom, dateCreation, self.id)
         connexion.cursor.execute("INSERT INTO groupe (nom, dateCreation, idUtilisateur) VALUES (?, ?, ?)", values)
         groupe = Groupe(
@@ -121,15 +121,15 @@ class Participation:
         self.id = id
 
 class Notification: 
-    def __init__(self, titre, contenu):
+    def __init__(self, titre, contenu, date):
         self.titre = titre
         self.contenu = contenu
+        self.date = date
 
     def setId(self, id):
         self.id = id
 
 class RecevoirNotification:
-    def __init__(self, idUtilisateur, idNotification, date):
+    def __init__(self, idUtilisateur, idNotification):
         self.idUtilisateur = idUtilisateur
         self.idNotification = idNotification
-        self.date = date

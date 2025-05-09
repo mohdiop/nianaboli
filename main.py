@@ -9,14 +9,15 @@ def authentification():
         print("1.) Connexion\n2.) Inscription\n3.) Quitter\n")
         choix = int(input("Votre choix : "))
 
-    user = None
+    user: models.UtilisateurInfo = None
 
-    if(choix == 1):
-        user = connectUser.login()
-    elif(choix == 2):
-        user = createUser.creationProcess()
-    elif(choix == 3):
-        sys.exit("À bientôt!")
+    match choix:
+        case 1:
+            user = connectUser.login()
+        case 2: 
+            user = createUser.creationProcess()
+        case 3:
+            sys.exit("À bientôt!")
     menuPrincipal(user)
 
 def menuPrincipal(utilisateur: models.UtilisateurInfo):
@@ -26,17 +27,16 @@ def menuPrincipal(utilisateur: models.UtilisateurInfo):
 
     choix = int(input("Votre choix : "))
 
-    if(choix == 1):
-        creationgroupe.creationGroupe(utilisateur)
-    elif(choix == 2): 
-        administrateur.userGroups(utilisateur)
-    elif(choix == 3):
-        notification.viewNotifications(utilisateur)
-    elif(choix == 4):
-        utilisateur = None
-        authentification()
+    match choix:
+        case 1:
+            creationgroupe.creationGroupe(utilisateur)
+        case 2: 
+            administrateur.userGroups(utilisateur)
+        case 3:
+            notification.viewNotifications(utilisateur)
+        case 4:
+            utilisateur = None
+            authentification()
 
 if (__name__ == '__main__'):
     authentification() 
-
-connexion.con.close()

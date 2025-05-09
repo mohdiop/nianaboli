@@ -62,18 +62,24 @@ def viewMyGroups(user):
     if(groupes is None or groupes == []):
         print("\nVous n'avez créé aucun groupe\n")
     else:
+        print("------------------------------ Mes Groupes ---------------------------------")
         print("----------------------------------------------------------------------------")
         for groupe in groupes:
             print(f"\nNom du groupe  : {groupe.nom}")
             print(f"\nCréé le        : {groupe.dateCreation}\n")
         print("----------------------------------------------------------------------------")
-    userGroups(user)
+    choix = int(input("1.) Visualiser un groupe en particulier\n2.) Retour\n\nVotre choix : "))
+    if(choix == 2):
+        userGroups(user)
+    else:
+        print("Choisissez le groupe à visualiser\n")
 
 def viewRelatedGroups(user):
     groupes = getRelatedGroups(user.id)
     if(groupes is None or groupes == []):
         print("\nVous ne faites partie d'aucun groupe\n")
     else:
+        print("----------------------- Groupes dans lesquels je suis ----------------------")
         print("----------------------------------------------------------------------------")
         for groupe in groupes:
             adminGroupe = createUser.getUserById(groupe.utilisateur.id)
@@ -86,10 +92,13 @@ def viewRelatedGroups(user):
 def userGroups(user: models.UtilisateurInfo):
     print("\n1.) Mes groupes créés\n2.) Ceux dans lesquels je suis membre\n3.) Retour\n")
     choix = int(input("Votre choix : "))
-    if(choix == 1):
-        viewMyGroups(user)
-    elif(choix == 2):
-        viewRelatedGroups(user)
-    elif(choix == 3):
-        import main
-        main.menuPrincipal(user)
+    
+    match choix:
+        case 1:
+            viewMyGroups(user)
+        case 2: 
+            viewRelatedGroups(user)
+        case 3:
+            import main
+            main.menuPrincipal(user)
+    
