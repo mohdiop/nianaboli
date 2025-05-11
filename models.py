@@ -47,28 +47,86 @@ class UtilisateurInfo:
         self.telephone = telephone
 
 class Groupe: 
-    def __init__(self, nom, dateCreation, idUtilisateur):
+    def __init__(self, nom, dateCreation, idUtilisateur=None):
         self.nom = nom
         self.dateCreation = dateCreation
-        self.utilisateur = createUser.getUserById(idUtilisateur)
-    
+        self.utilisateur = None
+
+        if idUtilisateur is not None:
+            self.utilisateur = createUser.getUserById(idUtilisateur)
+
     def setId(self, id):
         self.id = id
     
+    def creerGroupe(self):
+        if self.utilisateur is None:
+            raise ValueError("Utilisateur non défini pour la création du groupe.")
+        values = (self.nom, self.dateCreation, self.utilisateur.id)
+        connexion.con.execute("INSERT INTO groupe (nom, dateCreation, idUtilisateur) VALUES (?, ?, ?)", values)
+
     def modifierNom(self, nom):
         connexion.con.execute("UPDATE groupe SET nom = ? WHERE id = ?", (nom, self.id))
 
+import connexion
+
 class Depense:
     repartition = []
-    def __init__(self, idGroupe, montant, titre, description,  dateCreation):
+
+    def __init__(self, idGroupe, montant, titre, description, dateCreation):
         self.idGroupe = idGroupe
-        self.titre = titre
         self.montant = montant
+        self.titre = titre
         self.description = description
         self.dateCreation = dateCreation
 
     def setId(self, id):
         self.id = id
+
+    def enregistrer(self):
+        connexion.con.execute(
+            "INSERT INTO depense (idGroupe, titre, description, dateCreation, montant) VALUES (?, ?, ?, ?, ?)",
+            (self.idGroupe, self.titre, self.description, self.dateCreation, self.montant)
+        )
+        self.id = connexion.con.execute("SELECT last_insert_rowid()").fetchone()[0]
+        connexion.con.commit()
+
+    def repartir_manuellement(self, repartition_dict):
+        for id_utilisateur, montant in repartition_dict.items():
+            connexion.con.execute(
+                "INSERT INTO participation (idUtilisateur, idDepense, montantAPaye) VALUES (?, ?, ?)",
+                (id_utilisateur, self.id, montant)
+            )
+        connexion.con.commit()
+    def repartir_automatiquement(self):
+        utilisateurs = connexion.con.execute(
+            "SELECT idUtilisateur FROM appartenance WHERE idGroupe = ?",
+            (self.idGroupe,)
+        ).fetchall()
+
+        if not utilisateurs:
+            print("Aucun utilisateur trouvé pour ce groupe.")
+            return
+
+        montant_par_utilisateur = self.montant // len(utilisateurs)
+        reste = self.montant % len(utilisateurs)
+
+        # Répartition du montant
+        for (idUtilisateur,) in utilisateurs:
+            connexion.con.execute(
+                "INSERT INTO participation (idUtilisateur, idDepense, montantAPaye) VALUES (?, ?, ?)",
+                (idUtilisateur, self.id, montant_par_utilisateur)
+            )
+
+        # Gestion du reste si nécessaire (cela peut être réparti ou stocké comme un solde)
+        if reste > 0:
+            print(f"Un reste de {reste} FCFA sera distribué.")
+            # Tu peux ajouter une logique pour répartir le reste si nécessaire
+
+        connexion.con.commit()
+        print(f"Répartition automatique effectuée : {montant_par_utilisateur} FCFA par utilisateur.")
+
+
+
     
 class Paiement:
     def __init__(self, montant, datePaiement, estValide):
