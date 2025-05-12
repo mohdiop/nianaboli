@@ -3,7 +3,7 @@ import models
 from datetime import datetime
 
 def creation_depense(id_createur_depense, id_groupe):
-    cursor = connexion.cursor()
+    cursor = connexion.cursor
 
     # Vérifie que le demandeur est administrateur du groupe
     cursor.execute("""
@@ -24,15 +24,23 @@ def creation_depense(id_createur_depense, id_groupe):
     except ValueError:
         return " Le montant doit être un entier."
 
-    date = datetime.now().strftime("%Y-%m-%d")
+    date = f"{datetime.now().strftime("%d-%m-%Y")} à {datetime.now().strftime("%H:%M:%S")}"
 
     # Création de l'objet dépense (ajuste selon ta classe)
-    depense = models.Depense(montant, titre, description, date, id_groupe)
+    depense = models.Depense(
+        id_groupe,
+        montant,
+        titre,
+        description,
+        date
+    )
 
     # Appel à la méthode pour insérer en BDD
-    resultat = depense.creerDepense()  # Assure-toi que cette méthode existe
+    creerDepense(depense) # Assure-toi que cette méthode existe
 
-    return resultat or "Dépense créée avec succès."
+def creerDepense(depense: models.Depense):
+    values = (depense.idGroupe, depense.titre, depense.description, depense.dateCreation, depense.montant)
+    connexion.cursor.execute("INSERT INTO depense (idGroupe, titre, description, dateCreation, montant) VALUES (?, ?, ?, ?, ?)", values)
 
      
     

@@ -18,8 +18,6 @@ def authentification():
             user = createUser.creationProcess()
         case 3:
             sys.exit("À bientôt!")
-        case 4:
-            administrateur.viewAllGroups()
     if(user is None):
         authentification()
     else:

@@ -1,4 +1,4 @@
-import connexion, models, createUser
+import connexion, models, createUser, Depense
 
 def viewStatisque():
     print("\n\n--------- Statistiques ---------\n\n")
@@ -87,18 +87,84 @@ def viewMyGroups(user):
     groupes = getUserGroupsByUserId(user.id)
     if(groupes is None or groupes == []):
         print("\nVous n'avez créé aucun groupe\n")
+        userGroups(user)
     else:
         print("------------------------------ Mes Groupes ---------------------------------")
         print("----------------------------------------------------------------------------")
+        indexes = []
         for groupe in groupes:
+            indexes.append(groupes.index(groupe) + 1)
+            print(f"\nGroupe n°{groupes.index(groupe) + 1}")
             print(f"\nNom du groupe  : {groupe.nom}")
-            print(f"\nCréé le        : {groupe.dateCreation}\n")
+            print(f"\nCréé le        : {groupe.dateCreation}\n\n")
         print("----------------------------------------------------------------------------")
-    choix = int(input("1.) Visualiser un groupe en particulier\n2.) Retour\n\nVotre choix : "))
-    if(choix == 2):
-        userGroups(user)
+        choix = int(input("1.) Visualiser un groupe en particulier\n2.) Retour\n\nVotre choix : "))
+        if(choix == 2):
+            userGroups(user)
+        else:
+            print("Choisissez le numéro du groupe à visualiser\n")
+            choix = int(input("Votre choix : "))
+            while(choix not in indexes):
+                print("Ce numéro ne figure pas dans les groupes affichés!")
+                choix = int(input("Votre choix : "))
+            viewGroup(groupes[choix-1], user)
+            userGroups(user)
+
+def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
+    if(groupe.utilisateur.id == user.id):
+        print(f"\nGroupe {groupe.nom} créé le {groupe.dateCreation} par moi")
     else:
-        print("Choisissez le groupe à visualiser\n")
+        user = createUser.getUserById(groupe.utilisateur.id)
+        userName = user.prenom + " " + user.nom
+        print(f"\nGroupe {groupe.nom} créé le {groupe.dateCreation} par {userName}")
+    
+    print("\n1.) Créer une dépense\n2.) Liste des dépenses\n3.) Ajouter membre\n4.) Liste des membres\n5.) Retour")
+    choix = int(input("Votre choix : "))
+    while(choix not in (1, 2, 3)):
+        print("Choix invalide!")
+        choix = int(input("Votre choix : "))
+    
+    if(choix == 1):
+        if(Depense.creation_depense(user.id, groupe.id) is not None):
+            print(Depense.creation_depense(user.id, groupe.id))
+    elif(choix ==2):
+        viewExpenses(groupe)
+
+
+def viewExpenses(groupe: models.Groupe):
+    print(f"-------------------------- Dépenses Groupe {groupe.nom}----------------------------")
+    depenses = getAllExpensesByGroupId(groupe.id)
+    if(depenses is None):
+        print("\nAucune dépense pour ce groupe\n")
+    else:
+        indexes = []
+        for depense in depenses:
+            index = depenses.index(depense)
+            indexes.append(index)
+            print(f"Dépense n°       : {index+1}")
+            print(f"Titre            : {depense.titre}")
+            print(f"Description      : {depense.description}")
+            print(f"Date de création : {depense.dateCreation}")
+            print(f"montant          : {depense.montant} FCFA")
+
+
+def getAllExpensesByGroupId(idGroup: int) -> list:
+    resources = connexion.cursor.execute("SELECT * FROM depense WHERE idGroupe = ?", (idGroup,)).fetchall()
+    if(resources is None):
+        return None
+    depenses = []
+    for resource in resources:
+        depense = models.Depense(
+            idGroupe=resource[1],
+            titre=resource[2],
+            description=resource[3],
+            dateCreation=resource[4],
+            montant=resource[5]
+        )
+        depense.setId(resource[0])
+        depenses.append(depense)
+    return depenses
+
 
 def viewRelatedGroups(user):
     groupes = getRelatedGroups(user.id)
