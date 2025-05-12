@@ -1,6 +1,7 @@
 import sqlite3
 
 con = sqlite3.connect("nianaboli.db")
+cursor = con.cursor()
 con.autocommit = True 
 
 def initialize():
@@ -40,10 +41,10 @@ def initialize():
 
     # Création de la table notification
     con.execute("CREATE TABLE IF NOT EXISTS " \
-    "notification (id INTEGER PRIMARY KEY AUTOINCREMENT, titre TEXT NOT NULL, contenu TEXT NOT NULL)")
+    "notification (id INTEGER PRIMARY KEY AUTOINCREMENT, titre TEXT NOT NULL, contenu TEXT NOT NULL, date TEXT NOT NULL)")
 
     # Création de la table recevoir_notification
     con.execute("CREATE TABLE IF NOT EXISTS " \
-    "recevoir_notification (idNotification INTEGER NOT NULL, idUtilisateur INTEGER NOT NULL, date TEXT NOT NULL, " \
+    "recevoir_notification (idNotification INTEGER NOT NULL, idUtilisateur INTEGER NOT NULL, estVu INTEGER CHECK(estVu IN (0,1)), " \
     "FOREIGN KEY(idNotification) REFERENCES notification(id), FOREIGN KEY(idUtilisateur) REFERENCES utilisateur(id), " \
     "PRIMARY KEY(idNotification, idUtilisateur))")
