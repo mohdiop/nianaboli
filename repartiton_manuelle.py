@@ -1,32 +1,26 @@
-from models import Depense
-from datetime import date
+import connexion, models
+from datetime import datetime
 
-def saisir_repartition():
-    repartition = {}
-    while True:
-        try:
-            id_user = int(input("ID de l'utilisateur (ou 0 pour terminer) : "))
-            if id_user == 0:
-                break
-            montant = int(input(f"Montant à payer pour l'utilisateur {id_user} : "))
-            repartition[id_user] = montant
-        except ValueError:
-            print("Entrée invalide. Essayez encore.")
-    return repartition
+def repartiotionManuelle(depense: models.Depense, members: list):
+    print("Montant à payer pour :")
+    connexion.con.autocommit = False
+    for member in members:
+        montantAPayerPourMembre = int(input(f"- {member.utilisateur.prenom} {member.utilisateur.nom} : "))
+        notification = models.Notification(
+            "Création Dépense",
+            f"Vous contribuez désormais à la dépense {depense.titre}, votre montant à payer est : {montantAPayerPourMembre} FCFA",
+            f"{datetime.now().strftime("%d-%m-%Y")} à {datetime.now().strftime("%H:%M:%S")}"
+        )
+        values = (notification.titre, notification.contenu, notification.date)
+        connexion.cursor.execute("INSERT INTO notification  (titre, contenu, date) VALUES (?, ?, ?)", values)
+        notification.setId(connexion.cursor.lastrowid)
+        idUtilisateur = member.utilisateur.id
+        values = (idUtilisateur, depense.id, montantAPayerPourMembre)
+        connexion.cursor.execute("INSERT INTO participation (idUtilisateur, idDepense, montantAPayer) VALUES (?, ?, ?)", values)
+        values = (notification.id, idUtilisateur, 0)
+        connexion.cursor.execute("INSERT INTO recevoir_notification (idNotification, idUtilisateur, estVu) VALUES (?, ?, ?)", values)
+        print(f"\nMontant restant : {depense.montant - montantAPayerPourMembre}\nUtilisateur restant : {len(members) - 1}")
+    connexion.con.commit()
+    connexion.con.autocommit = True
+    return "Répartition effectuée avec succès"
 
-def main():
-    id_groupe = int(input("ID du groupe concerné : "))
-    titre = input("Titre de la dépense : ")
-    description = input("Description : ")
-    montant_total = int(input("Montant total de la dépense : "))
-
-    depense = Depense(id_groupe, montant_total, titre, description, date.today().strftime("%d/%m/%Y"))
-    depense.enregistrer()
-
-    print("\n--- Répartition manuelle ---")
-    repartition = saisir_repartition()
-    depense.repartir_manuellement(repartition)
-    print("Répartition effectuée.")
-
-if __name__ == "__main__":
-    main()

@@ -1,4 +1,4 @@
-import connexion, models, createUser, Depense
+import connexion, models, createUser, Depense, repartition_auto, repartiton_manuelle
 
 def viewStatisque():
     print("\n\n--------- Statistiques ---------\n\n")
@@ -125,13 +125,31 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
         choix = int(input("Votre choix : "))
     
     if(choix == 1):
-        if(Depense.creation_depense(user.id, groupe.id) is not None):
+        depense = Depense.creation_depense(user.id, groupe.id)
+        if(type(depense) is not models.Depense):
             print(Depense.creation_depense(user.id, groupe.id))
+        else:
+            print("1.) Répartition automatique\n2.) Répartition manuelle")
+            choix = int(input("Votre choix : "))
+            while(choix not in (1, 2)):
+                print("Choix invalide!")
+                choix = int(input("Votre choix = "))
+            members = getMembersByGroupId(groupe.id)
+            members.append(UtilisateurInfoGroupe(groupe.utilisateur, ""))
+            if(choix == 1):
+                resultat = repartition_auto.repartitionAuto(depense, members)
+                print(resultat)
+            else:
+                resultat = repartiton_manuelle.repartiotionManuelle(depense, members)
+                print(resultat)
     elif(choix ==2):
-        viewExpenses(groupe)
+        viewExpenses(groupe, user)
+
+    elif(choix == 5):
+        viewMyGroups(user)
 
 
-def viewExpenses(groupe: models.Groupe):
+def viewExpenses(groupe: models.Groupe, user: models.UtilisateurInfo):
     print(f"-------------------------- Dépenses Groupe {groupe.nom}----------------------------")
     depenses = getAllExpensesByGroupId(groupe.id)
     if(depenses is None):
@@ -145,7 +163,8 @@ def viewExpenses(groupe: models.Groupe):
             print(f"Titre            : {depense.titre}")
             print(f"Description      : {depense.description}")
             print(f"Date de création : {depense.dateCreation}")
-            print(f"montant          : {depense.montant} FCFA")
+            print(f"Montant          : {depense.montant} FCFA")
+    viewGroup(groupe, user)
 
 
 def getAllExpensesByGroupId(idGroup: int) -> list:

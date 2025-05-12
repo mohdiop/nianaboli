@@ -37,10 +37,12 @@ def creation_depense(id_createur_depense, id_groupe):
 
     # Appel à la méthode pour insérer en BDD
     creerDepense(depense) # Assure-toi que cette méthode existe
+    return depense
 
 def creerDepense(depense: models.Depense):
     values = (depense.idGroupe, depense.titre, depense.description, depense.dateCreation, depense.montant)
     connexion.cursor.execute("INSERT INTO depense (idGroupe, titre, description, dateCreation, montant) VALUES (?, ?, ?, ?, ?)", values)
+    depense.setId(connexion.cursor.lastrowid)
 
      
     

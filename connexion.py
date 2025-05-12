@@ -21,7 +21,7 @@ def initialize():
 
     # Création de la table participation
     con.execute("CREATE TABLE IF NOT EXISTS " \
-    "participation (idUtilisateur INTEGER NOT NULL, idDepense INTEGER NOT NULL, montantAPaye INTEGER NOT NULL, " \
+    "participation (idUtilisateur INTEGER NOT NULL, idDepense INTEGER NOT NULL, montantAPayer INTEGER NOT NULL, " \
     "PRIMARY KEY(idUtilisateur, idDepense), FOREIGN KEY(idUtilisateur) REFERENCES utilisateur(id), FOREIGN KEY(idDepense) REFERENCES depense(id))")
 
     # Création de la table administrateur

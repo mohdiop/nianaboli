@@ -1,23 +1,27 @@
-from datetime import date
-from models import Depense
+from datetime import datetime
+import models, connexion
 
-def main():
-    try:
-        # Demande de l'utilisateur
-        idGroupe = int(input("ID du groupe concerné : "))
-        titre = input("Titre de la dépense : ")
-        description = input("Description : ")
-        montant = int(input("Montant total de la dépense : "))
+def repartitionAuto(depense: models.Depense, members: list):
+    montantTotal = depense.montant
+    montantAPayer = montantTotal // len(members)
+    idDepense = depense.id
+    notification = models.Notification(
+        "Création Dépense",
+        f"Vous contribuez désormais à la dépense {depense.titre}, votre montant à payer est : {montantAPayer} FCFA",
+        f"{datetime.now().strftime("%d-%m-%Y")} à {datetime.now().strftime("%H:%M:%S")}"
+    )
+    values = (notification.titre, notification.contenu, notification.date)
+    connexion.cursor.execute("INSERT INTO notification  (titre, contenu, date) VALUES (?, ?, ?)", values)
+    notification.setId(connexion.cursor.lastrowid)
 
-        # Créer une instance de Depense
-        depense = Depense(idGroupe, montant, titre, description, date.today().strftime("%d/%m/%Y"))
-        depense.enregistrer()  # Enregistrer la dépense dans la base de données
+    for member in members:
+        idUtilisateur = member.utilisateur.id
+        values = (idUtilisateur, idDepense, montantAPayer)
+        connexion.cursor.execute("INSERT INTO participation (idUtilisateur, idDepense, montantAPayer) VALUES (?, ?, ?)", values)
 
-        # Appeler la méthode repartir_automatiquement pour répartir la dépense
-        depense.repartir_automatiquement()  # Appel à la méthode qui répartit la dépense
+        values = (notification.id, idUtilisateur, 0)
+        connexion.cursor.execute("INSERT INTO recevoir_notification (idNotification, idUtilisateur, estVu) VALUES (?, ?, ?)", values)
 
-    except Exception as e:
-        print("Une erreur est survenue :", e)
+    return f"Répartition automatique effectuée, montant par membre : {montantAPayer} FCFA"
 
-if __name__ == "__main__":
-    main()
+    
