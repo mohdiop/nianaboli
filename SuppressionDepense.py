@@ -1,6 +1,6 @@
 def supprimer_depense_par_titre(id_utilisateur, id_groupe):
-    from connexion import connexion  # Connexion SQLite3
-    cursor = connexion.cursor()
+    import connexion  # Connexion SQLite3
+    cursor = connexion.cursor
 
     # Étape 1 : Vérifier que l'utilisateur est administrateur du groupe
     cursor.execute("""
@@ -9,7 +9,7 @@ def supprimer_depense_par_titre(id_utilisateur, id_groupe):
     """, (id_utilisateur, id_groupe))
 
     if not cursor.fetchone():
-        print(" Seuls les administrateurs peuvent supprimer une dépense.")
+        print("Seuls les administrateurs peuvent supprimer une dépense.")
         return
 
     # Étape 2 : Demander le titre de la dépense
@@ -17,7 +17,7 @@ def supprimer_depense_par_titre(id_utilisateur, id_groupe):
 
     # Étape 3 : Rechercher toutes les dépenses avec ce titre dans ce groupe
     cursor.execute("""
-        SELECT id, titre, description, date, montant FROM depense
+        SELECT id, titre, description, dateCreation, montant FROM depense
         WHERE titre = ? AND idGroupe = ?
     """, (titre, id_groupe))
 
@@ -53,7 +53,7 @@ def supprimer_depense_par_titre(id_utilisateur, id_groupe):
         cursor.execute("DELETE FROM paiement WHERE idDepense = ?", (id_depense,))
         cursor.execute("DELETE FROM participation WHERE idDepense = ?", (id_depense,))
         cursor.execute("DELETE FROM depense WHERE id = ?", (id_depense,))
-        connexion.commit()
+        connexion.con.commit()
         print(f" Dépense supprimée avec succès.")
     except Exception as e:
         print(f" Erreur lors de la suppression : {e}")

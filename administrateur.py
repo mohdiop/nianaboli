@@ -1,4 +1,4 @@
-import connexion, models, createUser, Depense, repartition_auto, repartiton_manuelle
+import connexion, models, createUser, Depense, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense
 
 def viewStatisque():
     print("\n\n--------- Statistiques ---------\n\n")
@@ -24,6 +24,7 @@ class UtilisateurInfoGroupe:
     def __init__(self, utilisateur: models.UtilisateurInfo, dateAjout):
         self.utilisateur = utilisateur
         self.dateAjout = dateAjout
+        self.role = "MEMBRE"
 
 def getMembersByGroupId(idGroup):
     resources = connexion.cursor.execute("SELECT id, nom, prenom, telephone, appartenance.dateAjout FROM utilisateur INNER JOIN appartenance ON utilisateur.id = appartenance.idUtilisateur WHERE appartenance.idGroupe = ? AND role = 'MEMBRE'", (idGroup,))
@@ -120,7 +121,7 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
     
     print("\n1.) Créer une dépense\n2.) Liste des dépenses\n3.) Ajouter membre\n4.) Liste des membres\n5.) Retour")
     choix = int(input("Votre choix : "))
-    while(choix not in (1, 2, 3)):
+    while(choix not in (1, 2, 3, 4, 5)):
         print("Choix invalide!")
         choix = int(input("Votre choix : "))
     
@@ -142,9 +143,22 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
             else:
                 resultat = repartiton_manuelle.repartiotionManuelle(depense, members)
                 print(resultat)
-    elif(choix ==2):
+    elif(choix == 2):
         viewExpenses(groupe, user)
-
+    elif(choix == 3):
+        addMembre.addMember(user, groupe)
+    elif(choix == 4):
+        print(f"Les membres du Groupe {groupe.nom}\n")
+        membres = getMembersByGroupId(groupe.id)
+        admin = UtilisateurInfoGroupe(
+            user,
+            groupe.dateCreation
+        )
+        admin.role = "ADMINISTRATEUR"
+        membres.append(admin)
+        for membre in membres:
+            print(f"{membre.utilisateur.prenom} {membre.utilisateur.nom} -- Rôle : {membre.role}\n")
+        viewGroup(groupe, user)
     elif(choix == 5):
         viewMyGroups(user)
 
@@ -163,8 +177,22 @@ def viewExpenses(groupe: models.Groupe, user: models.UtilisateurInfo):
             print(f"Titre            : {depense.titre}")
             print(f"Description      : {depense.description}")
             print(f"Date de création : {depense.dateCreation}")
-            print(f"Montant          : {depense.montant} FCFA")
-    viewGroup(groupe, user)
+            print(f"Montant          : {depense.montant} FCFA\n")
+
+    print("\n1.) Voir une dépense en particulier\n2.) Supprimer une dépense\n3.) Retour\n")
+    choix = int(input("Votre choix : "))
+    while(choix not in (1, 2, 3)):
+        print("Choix invalide!")
+        choix = int(input("Votre choix : "))
+    
+    match choix:
+        case 1:
+            pass
+        case 2:
+            SuppressionDepense.supprimer_depense_par_titre(user.id, groupe.id)
+            viewGroup(groupe, user)
+        case 3:
+            viewGroup(groupe, user)
 
 
 def getAllExpensesByGroupId(idGroup: int) -> list:
