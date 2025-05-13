@@ -2,44 +2,10 @@ import connexion
 from datetime import datetime
 import models
 
-def effectuer_paiement(utilisateur: models.UtilisateurInfo):
+def effectuer_paiement(utilisateur: models.UtilisateurInfo, groupe: models.Groupe, depense: models.Depense):
     print("\n--- Effectuer un paiement ---")
     
-    # Étape 1: Afficher les groupes de l'utilisateur
-    groupes = get_user_groups(utilisateur.id)
-    if not groupes:
-        print("Vous n'êtes membre d'aucun groupe.")
-        return
-    
-    print("\nVos groupes:")
-    for i, groupe in enumerate(groupes, 1):
-        print(f"{i}. {groupe.nom} (créé le {groupe.dateCreation})")
-    
-    # Étape 2: Sélectionner un groupe
-    choix_groupe = int(input("\nChoisissez un groupe (numéro): ")) - 1
-    if choix_groupe < 0 or choix_groupe >= len(groupes):
-        print("Choix invalide.")
-        return
-    
-    groupe_selectionne = groupes[choix_groupe]
-    
-    # Étape 3: Afficher les dépenses du groupe
-    depenses = get_group_expenses(groupe_selectionne.id)
-    if not depenses:
-        print("Ce groupe n'a aucune dépense enregistrée.")
-        return
-    
-    print(f"\nDépenses du groupe {groupe_selectionne.nom}:")
-    for i, depense in enumerate(depenses, 1):
-        print(f"{i}. {depense.titre} - {depense.montant} FCFA (le {depense.dateCreation})")
-    
-    # Étape 4: Sélectionner une dépense
-    choix_depense = int(input("\nChoisissez une dépense (numéro): ")) - 1
-    if choix_depense < 0 or choix_depense >= len(depenses):
-        print("Choix invalide.")
-        return
-    
-    depense_selectionnee = depenses[choix_depense]
+    depense_selectionnee = depense
     
     # Étape 5: Vérifier si l'utilisateur fait partie de la dépense
     participation = get_user_participation(utilisateur.id, depense_selectionnee.id)
@@ -48,6 +14,10 @@ def effectuer_paiement(utilisateur: models.UtilisateurInfo):
         return
     
     montant_a_payer = participation.montantAPayer
+
+    if(montant_a_payer == 0):
+        print("Vous avez effectué tous vos paiements pour cette dépense!\n")
+        return
     
     # Étape 6: Demander le montant à payer
     print(f"\nMontant à payer pour cette dépense: {montant_a_payer} FCFA")
@@ -55,56 +25,23 @@ def effectuer_paiement(utilisateur: models.UtilisateurInfo):
     
     if montant_paye < montant_a_payer:
         print(f"Attention: vous payez moins que le montant dû ({montant_a_payer} FCFA)")
+
+    while(montant_a_payer < montant_paye):
+        print("Impossible d'effectuer le paiement le montant payé est supérieur au montant à payer\n")
+        montant_paye = float(input("Entrez le montant que vous payez: "))
     
     # Étape 7: Enregistrer le paiement
     enregistrer_paiement(utilisateur.id, depense_selectionnee.id, montant_paye)
     
     # Étape 8: Notifier l'administrateur
-    notifier_administrateur(groupe_selectionne, utilisateur, depense_selectionnee, montant_paye)
+    notifier_administrateur(groupe, utilisateur, depense_selectionnee, montant_paye)
     
     print("\nPaiement enregistré avec succès! Il sera validé par l'administrateur du groupe.")
-
-def get_user_groups(user_id):
-    """Récupère les groupes auxquels l'utilisateur appartient"""
-    resources = connexion.con.execute(
-        "SELECT groupe.id, groupe.nom, groupe.dateCreation, groupe.idUtilisateur "
-        "FROM groupe INNER JOIN appartenance ON groupe.id = appartenance.idGroupe "
-        "WHERE appartenance.idUtilisateur = ?", (user_id,)).fetchall()
-    
-    groupes = []
-    for res in resources:
-        groupe = models.Groupe(
-            nom=res[1],
-            dateCreation=res[2],
-            idUtilisateur=res[3]
-        )
-        groupe.setId(res[0])
-        groupes.append(groupe)
-    return groupes
-
-def get_group_expenses(group_id):
-    """Récupère les dépenses d'un groupe"""
-    resources = connexion.con.execute(
-        "SELECT id, titre, description, dateCreation, montant "
-        "FROM depense WHERE idGroupe = ?", (group_id,)).fetchall()
-    
-    depenses = []
-    for res in resources:
-        depense = models.Depense(
-            idGroupe=group_id,
-            titre=res[1],
-            description=res[2],
-            dateCreation=res[3],
-            montant=res[4]
-        )
-        depense.setId(res[0])
-        depenses.append(depense)
-    return depenses
 
 def get_user_participation(user_id, expense_id):
     """Vérifie si l'utilisateur participe à une dépense et retourne sa participation"""
     res = connexion.con.execute(
-        "SELECT idUtilisateur, idDepense, montantAPaye "
+        "SELECT idUtilisateur, idDepense, montantAPayer "
         "FROM participation WHERE idUtilisateur = ? AND idDepense = ?", 
         (user_id, expense_id)).fetchone()
     
@@ -118,12 +55,18 @@ def get_user_participation(user_id, expense_id):
     )
 
 def enregistrer_paiement(user_id, expense_id, montant):
+    connexion.con.autocommit = False
     """Enregistre un paiement dans la base de données"""
     date_paiement = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     connexion.con.execute(
         "INSERT INTO paiement (idUtilisateur, idDepense, montant, date, estValide) "
         "VALUES (?, ?, ?, ?, ?)", 
         (user_id, expense_id, montant, date_paiement, 0))
+    
+    connexion.con.execute("UPDATE participation SET montantAPayer = montantAPayer - ? WHERE idUtilisateur = ? AND idDepense = ?",
+                          (montant, user_id, expense_id))
+    connexion.con.commit()
+    connexion.con.autocommit = True
 
 def notifier_administrateur(groupe, utilisateur, depense, montant):
     """Envoie une notification à l'administrateur du groupe"""

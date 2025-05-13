@@ -1,4 +1,4 @@
-import connexion, models, createUser, Depense, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense
+import connexion, models, createUser, Depense, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense, paiement
 
 def viewStatisque():
     print("\n\n--------- Statistiques ---------\n\n")
@@ -172,13 +172,9 @@ def viewExpenses(groupe: models.Groupe, user: models.UtilisateurInfo):
         indexes = []
         for depense in depenses:
             index = depenses.index(depense)
-            indexes.append(index)
+            indexes.append(index+1)
             print(f"Dépense n°       : {index+1}")
-            print(f"Titre            : {depense.titre}")
-            print(f"Description      : {depense.description}")
-            print(f"Date de création : {depense.dateCreation}")
-            print(f"Montant          : {depense.montant} FCFA\n")
-
+            showExpense(depense)
     print("\n1.) Voir une dépense en particulier\n2.) Supprimer une dépense\n3.) Retour\n")
     choix = int(input("Votre choix : "))
     while(choix not in (1, 2, 3)):
@@ -187,12 +183,35 @@ def viewExpenses(groupe: models.Groupe, user: models.UtilisateurInfo):
     
     match choix:
         case 1:
-            pass
+            print("Veuillez fournir le numéro de la dépense\n")
+            choix = int(input("Votre choix : "))
+            while(choix not in indexes):
+                print("Numéro invalide veuillez fournir un numéro valide!")
+                choix = int(input("Votre choix : "))
+            viewExpense(depenses[choix-1], groupe, user)
         case 2:
             SuppressionDepense.supprimer_depense_par_titre(user.id, groupe.id)
             viewGroup(groupe, user)
         case 3:
             viewGroup(groupe, user)
+
+def showExpense(depense: models.Depense):
+    print(f"Titre            : {depense.titre}")
+    print(f"Description      : {depense.description}")
+    print(f"Date de création : {depense.dateCreation}")
+    print(f"Montant          : {depense.montant} FCFA\n")
+
+def viewExpense(depense: models.Depense, groupe: models.Groupe, user: models.UtilisateurInfo):
+    showExpense(depense)
+    print("1.) Voir les paiements\n2.) Faire un paiement\n3.) Retour")
+    choix = int(input("Votre choix : "))
+    match choix:
+        case 1:
+            pass
+        case 2:
+            paiement.effectuer_paiement(user, groupe, depense)
+        case 3:
+            viewExpenses(groupe, user)
 
 
 def getAllExpensesByGroupId(idGroup: int) -> list:
