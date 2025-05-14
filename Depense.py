@@ -7,10 +7,10 @@ def creation_depense(id_createur_depense, id_groupe):
 
     # Vérifie que le demandeur est administrateur du groupe
     cursor.execute("""
-        SELECT 1 FROM appartenance
+        SELECT * FROM appartenance
         WHERE idUtilisateur = ? AND idGroupe = ? AND role = 'ADMINISTRATEUR'
     """, (id_createur_depense, id_groupe))
-    est_admin = cursor.fetchone()
+    est_admin = cursor.fetchone() is not None
 
     if not est_admin:
         return " Seul un administrateur peut créer une dépense."

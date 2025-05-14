@@ -115,8 +115,8 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
     if(groupe.utilisateur.id == user.id):
         print(f"\nGroupe {groupe.nom} créé le {groupe.dateCreation} par moi")
     else:
-        user = createUser.getUserById(groupe.utilisateur.id)
-        userName = user.prenom + " " + user.nom
+        administrateur = createUser.getUserById(groupe.utilisateur.id)
+        userName = administrateur.prenom + " " + administrateur.nom
         print(f"\nGroupe {groupe.nom} créé le {groupe.dateCreation} par {userName}")
     
     print("\n1.) Créer une dépense\n2.) Liste des dépenses\n3.) Ajouter membre\n4.) Liste des membres\n5.) Retour")
@@ -128,7 +128,8 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
     if(choix == 1):
         depense = Depense.creation_depense(user.id, groupe.id)
         if(type(depense) is not models.Depense):
-            print(Depense.creation_depense(user.id, groupe.id))
+            print(depense)
+            viewGroup(groupe, user)
         else:
             print("1.) Répartition automatique\n2.) Répartition manuelle")
             choix = int(input("Votre choix : "))
@@ -147,11 +148,12 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
         viewExpenses(groupe, user)
     elif(choix == 3):
         addMembre.addMember(user, groupe)
+        viewGroup(groupe, user)
     elif(choix == 4):
         print(f"Les membres du Groupe {groupe.nom}\n")
         membres = getMembersByGroupId(groupe.id)
         admin = UtilisateurInfoGroupe(
-            user,
+            createUser.getUserById(groupe.utilisateur.id),
             groupe.dateCreation
         )
         admin.role = "ADMINISTRATEUR"
@@ -210,6 +212,7 @@ def viewExpense(depense: models.Depense, groupe: models.Groupe, user: models.Uti
             pass
         case 2:
             paiement.effectuer_paiement(user, groupe, depense)
+            viewExpenses(groupe, user)
         case 3:
             viewExpenses(groupe, user)
 
@@ -239,13 +242,24 @@ def viewRelatedGroups(user):
     else:
         print("----------------------- Groupes dans lesquels je suis ----------------------")
         print("----------------------------------------------------------------------------")
+        indexes = []
         for groupe in groupes:
             adminGroupe = createUser.getUserById(groupe.utilisateur.id)
+            indexes.append(groupes.index(groupe) + 1)
+            print(f"\nGroupe n°{groupes.index(groupe) + 1}")
             print(f"\nNom du groupe  : {groupe.nom}")
             print(f"\nCréé le        : {groupe.dateCreation}")
             print(f"\nAdministrateur : {adminGroupe.prenom} {adminGroupe.nom}\n")
         print("----------------------------------------------------------------------------")
-    userGroups(user)
+    choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
+    indexes.append(0)
+    while(choix not in indexes):
+        print("Choix invalide!")
+        choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
+    if(choix == 0):
+        userGroups(user)
+    else:
+        viewGroup(groupes[choix-1], user)
 
 def userGroups(user: models.UtilisateurInfo):
     print("\n1.) Mes groupes créés\n2.) Ceux dans lesquels je suis membre\n3.) Retour\n")
@@ -259,4 +273,9 @@ def userGroups(user: models.UtilisateurInfo):
         case 3:
             import main
             main.menuPrincipal(user)
+
+def estAdmin(userId, groupeId):
+    res = connexion.cursor.execute("SELECT * FROM appartenance WHERE idUtilisateur = ? AND idGroupe = ? AND role = 'ADMINISTRATEUR'", (userId, groupeId)).fetchone()
+    estAdmin = res is not None
+    return estAdmin
     

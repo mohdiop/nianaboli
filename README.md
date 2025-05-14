@@ -43,3 +43,4 @@ Pour lancer l'application, ouvrez une console et exécutez le fichier `main.py`.
 
 ```bash
 python main.py
+```

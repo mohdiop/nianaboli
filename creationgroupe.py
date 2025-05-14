@@ -1,4 +1,4 @@
-import models, createUser, connexion, administrateur
+import models, createUser, connexion, utilisateur
 from datetime import datetime
 
 def creationGroupe(user: models.UtilisateurInfo):
@@ -36,7 +36,7 @@ def creationGroupe(user: models.UtilisateurInfo):
             notification.setId(connexion.cursor.lastrowid)
             connexion.cursor.execute("INSERT INTO recevoir_notification (idNotification, idUtilisateur, estVu) VALUES (?, ?, ?)", (notification.id, ajoutMembre.idUtilisateur, 0))
         choix = int(input("Voulez-vous ajouter un membre? (1 = oui/ autres chiffres = non)\n"))
-    administrateur.userGroups(user)
+    utilisateur.userGroups(user)
 
 def isAllreadyAMember(userId, groupId):
     res = connexion.cursor.execute("SELECT * FROM appartenance WHERE idUtilisateur = ? AND idGroupe = ?", (userId, groupId)).fetchone()

@@ -2,6 +2,11 @@ import models, connexion, createUser
 from datetime import datetime
 
 def addMember(admin: models.UtilisateurInfo, groupe: models.Groupe):
+    res = connexion.cursor.execute("SELECT * FROM appartenance WHERE idUtilisateur = ? AND idGroupe = ? AND role = 'ADMINISTRATEUR'", (admin.id, groupe.id)).fetchone()
+    estAdmin = res is not None
+    if not estAdmin :
+        print("Seul l'administrateur du groupe peut ajouter des membres!")
+        return
     choix = 1
     while (choix == 1):
         telephone = input("Le numéro du membre à ajouter : ")
