@@ -34,7 +34,7 @@ Pour cloner le projet, suivez les étapes suivantes :
 1.  Ouvrez Git Bash.
 2.  Saisissez la commande suivante :
     ```bash
-    git clone [https://github.com/mohdiop/nianaboli.git](https://github.com/mohdiop/nianaboli.git)
+    git clone https://github.com/mohdiop/nianaboli.git
     ```
 
 ## Utilisation
