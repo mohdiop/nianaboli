@@ -94,11 +94,13 @@ class Paiement:
         self.id = id
 
 class Administrateur:
-    def __init__(self, nom, prenom, motDePasse, telephone):
+    def __init__(self, nom, prenom, telephone, motDePasse):
         self.nom = nom
         self.prenom = prenom
         self.motDePasse = motDePasse
         self.telephone = telephone
+    def setId(self, id):
+        self.id = id
 
 class Role(Enum): 
     ADMINISTRATEUR = 1

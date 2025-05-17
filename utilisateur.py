@@ -1,24 +1,5 @@
 import connexion, models, createUser, Depense, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense, paiement
 
-def viewStatisque():
-    print("\n\n--------- Statistiques ---------\n\n")
-    print("--------- Les groupes crées ---------\n")
-    viewAllGroups()
-
-def viewAllGroups(): 
-    groupes = getAllGroups()
-    for groupe in groupes:
-        proprietaire = createUser.getUserById(groupe.utilisateur.id)
-        membres = getMembersByGroupId(groupe.id)
-        print("----------------------------------------------------------------------------")
-        print(groupes.index(groupe)+1)
-        print(f"Nom du groupe : {groupe.nom}")
-        print(f"Créé par      : {proprietaire.prenom} {proprietaire.nom}")
-        print(f"Le            : {groupe.dateCreation}")
-        print(f"\nLes membres du groupe {groupes.index(groupe)+1}\n")
-        for membre in membres: 
-            print(f"| Nom : {membre.utilisateur.prenom} {membre.utilisateur.nom} Tel : {membre.utilisateur.telephone} ajouté le {membre.dateAjout}")
-    print("----------------------------------------------------------------------------")
 
 class UtilisateurInfoGroupe:
     def __init__(self, utilisateur: models.UtilisateurInfo, dateAjout):
@@ -41,20 +22,6 @@ def getMembersByGroupId(idGroup):
         )
         membres.append(membre)
     return membres
-
-def getAllGroups():
-    resources = connexion.con.execute("SELECT * FROM groupe").fetchall()
-    groupes = []
-    for resource in resources:
-        groupe = models.Groupe(
-            nom=resource[1],
-            dateCreation=resource[2],
-            idUtilisateur=resource[3]
-        )
-        groupe.setId(resource[0])
-        groupes.append(groupe)
-    groupes.sort()
-    return groupes
 
 def getUserGroupsByUserId(userId):
     resources = connexion.cursor.execute("SELECT * FROM groupe INNER JOIN appartenance ON groupe.id = appartenance.idGroupe WHERE appartenance.idUtilisateur = ? AND appartenance.role = 'ADMINISTRATEUR'", (userId,)).fetchall()
@@ -237,12 +204,12 @@ def getAllExpensesByGroupId(idGroup: int) -> list:
 
 def viewRelatedGroups(user):
     groupes = getRelatedGroups(user.id)
-    if(groupes is None or groupes == []):
+    if(groupes is None or groupes is []):
         print("\nVous ne faites partie d'aucun groupe\n")
     else:
         print("----------------------- Groupes dans lesquels je suis ----------------------")
         print("----------------------------------------------------------------------------")
-        indexes = []
+        indexes = [0,]
         for groupe in groupes:
             adminGroupe = createUser.getUserById(groupe.utilisateur.id)
             indexes.append(groupes.index(groupe) + 1)
@@ -251,15 +218,15 @@ def viewRelatedGroups(user):
             print(f"\nCréé le        : {groupe.dateCreation}")
             print(f"\nAdministrateur : {adminGroupe.prenom} {adminGroupe.nom}\n")
         print("----------------------------------------------------------------------------")
-    choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
-    indexes.append(0)
-    while(choix not in indexes):
-        print("Choix invalide!")
         choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
-    if(choix == 0):
-        userGroups(user)
-    else:
-        viewGroup(groupes[choix-1], user)
+        while(choix not in indexes):
+            print("Choix invalide!")
+            choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
+        if(choix == 0):
+            userGroups(user)
+        else:
+            viewGroup(groupes[choix-1], user)
+    userGroups(user)
 
 def userGroups(user: models.UtilisateurInfo):
     print("\n1.) Mes groupes créés\n2.) Ceux dans lesquels je suis membre\n3.) Retour\n")

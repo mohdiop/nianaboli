@@ -1,4 +1,4 @@
-import connexion, createUser, connectUser, models, creationgroupe, sys, utilisateur as u, notification
+import connexion, createUser, connectUser, models, creationgroupe, sys, utilisateur as u, notification, administrateur
 
 connexion.initialize()
 
@@ -6,8 +6,8 @@ def authentification():
     import os
     os.system('clear' if os.name == 'posix' else 'cls')
     print("\n\n------------- Bienvenue sur Nianaboli, votre console de gestion de dépenses collaboratives -------------\n\n")
-    choix = 0
-    while(choix not in (1, 2, 3, 4)):
+    choix = 109309
+    while(choix not in (1, 2, 3, 0)):
         print("1.) Connexion\n2.) Inscription\n3.) Quitter\n")
         choix = int(input("Votre choix : "))
 
@@ -20,6 +20,8 @@ def authentification():
             user = createUser.creationProcess()
         case 3:
             sys.exit("À bientôt!")
+        case 0:
+            administrateur.seConnecter()
     if(user is None):
         authentification()
     else:
