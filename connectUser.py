@@ -1,7 +1,8 @@
-import createUser, sys, models, bcrypt
+import createUser, sys, models, bcrypt, style, os
 
 def login():
-    print("\nConnexion\n")
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Connexion")
     telephone = input("Votre numéro de téléphone: ")
     utilisateur = createUser.getUserByTel(telephone)
     while(utilisateur is None):

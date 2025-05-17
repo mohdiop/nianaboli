@@ -1,7 +1,8 @@
-import connexion, models, bcrypt, createUser, utilisateur, main
+import connexion, models, bcrypt, createUser, utilisateur, main, style, os
 
 def seConnecter():
-    print("------- Connexion Admin -------\n")
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Connexion Admin")
     telephone = input("Votre numéro de téléphone: ")
     admin = getAdminByTel(telephone)
     while(admin is None):
@@ -12,12 +13,13 @@ def seConnecter():
     hashedMotDePasse = admin.motDePasse
     while(not bcrypt.checkpw(motDePasse.encode(), hashedMotDePasse.encode())):
         motDePasse = input(f"Mot de passe incorrect!\nVotre mot de passe: ")
-    
     adminDashboard(admin)
 
 def adminDashboard(admin: models.Administrateur):
-    print(f"Bienvenue sur votre Dashboard {admin.prenom} {admin.nom}\n")
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle(f"Bienvenue sur votre Dashboard {admin.prenom} {admin.nom}")
     print("1.) Lister tous les groupes\n2.) Lister les utilisateurs\n3.) Changer le mot de passe d'un utilisateur\n4.) Se déconnecter\n")
+
     choix = int(input("Votre choix : "))
     while(choix not in (1, 2, 3, 4)):
         print("Choix invalide!\n")
@@ -29,44 +31,61 @@ def adminDashboard(admin: models.Administrateur):
         case 2:
             voirUtilisateurs()
         case 3:
-            changerMotDePasse()
+            if(not getAllUtilisateurs()):
+                print("\nAucun utilisateur dans le système\n")
+                input("Appuyer entrer pour revenir au dashboard ...")
+            else:
+                changerMotDePasse()
         case 4:
             main.authentification()
 
     adminDashboard(admin)
 
 def voirGroupes(): 
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Tous les groupes du système")
     groupes = getAllGroups()
-    for groupe in groupes:
-        proprietaire = createUser.getUserById(groupe.utilisateur.id)
-        membres = utilisateur.getMembersByGroupId(groupe.id)
+    if (not groupes):
+        print("\nAucun groupe dans le système\n")
+    else:
+        for groupe in groupes:
+            proprietaire = createUser.getUserById(groupe.utilisateur.id)
+            membres = utilisateur.getMembersByGroupId(groupe.id)
+            print("----------------------------------------------------------------------------")
+            print(groupes.index(groupe)+1)
+            print(f"Nom du groupe : {groupe.nom}")
+            print(f"Créé par      : {proprietaire.prenom} {proprietaire.nom}")
+            print(f"Le            : {groupe.dateCreation}")
+            print(f"\nLes membres du groupe {groupes.index(groupe)+1}\n")
+            for membre in membres: 
+                print(f"| Nom : {membre.utilisateur.prenom} {membre.utilisateur.nom} Tel : {membre.utilisateur.telephone} ajouté le {membre.dateAjout}")
         print("----------------------------------------------------------------------------")
-        print(groupes.index(groupe)+1)
-        print(f"Nom du groupe : {groupe.nom}")
-        print(f"Créé par      : {proprietaire.prenom} {proprietaire.nom}")
-        print(f"Le            : {groupe.dateCreation}")
-        print(f"\nLes membres du groupe {groupes.index(groupe)+1}\n")
-        for membre in membres: 
-            print(f"| Nom : {membre.utilisateur.prenom} {membre.utilisateur.nom} Tel : {membre.utilisateur.telephone} ajouté le {membre.dateAjout}")
-    print("----------------------------------------------------------------------------")
+    input("Appuyer entrer pour continuer ...")
 
 def voirUtilisateurs():
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Tous les utilisateurs du système")
     utilisateurs = getAllUtilisateurs()
-    for utilisateur in utilisateurs:
+    if(not utilisateurs):
+        print("\nAucun utilisateur dans le système\n")
+    else:
+        for utilisateur in utilisateurs:
+            print("----------------------------------------------------------------------------")
+            nombreGroupesCrees = getNumberOfCreatedGroupsByUserId(utilisateur.id)
+            nombreGroupesAppartenance = getNumberOfRelatedGroupsByUserId(utilisateur.id)
+            sommeDesPaiements = getAllPaymentByUserId(utilisateur.id)
+            print(utilisateurs.index(utilisateur)+1)
+            print(f"Nom Complet de l'utilisateur            : {utilisateur.prenom} {utilisateur.nom}")
+            print(f"Numéro de téléphone                     : {utilisateur.telephone}")
+            print(f"Nombre de groupes créés                 : {nombreGroupesCrees}")
+            print(f"Nombre de groupes où il/elle est membre : {nombreGroupesAppartenance}")
+            print(f"Total paiements effectués               : {sommeDesPaiements} FCFA")
         print("----------------------------------------------------------------------------")
-        nombreGroupesCrees = getNumberOfCreatedGroupsByUserId(utilisateur.id)
-        nombreGroupesAppartenance = getNumberOfRelatedGroupsByUserId(utilisateur.id)
-        sommeDesPaiements = getAllPaymentByUserId(utilisateur.id)
-        print(utilisateurs.index(utilisateur)+1)
-        print(f"Nom Complet de l'utilisateur            : {utilisateur.prenom} {utilisateur.nom}")
-        print(f"Numéro de téléphone                     : 4{utilisateur.telephone}")
-        print(f"Nombre de groupes créés                 : {nombreGroupesCrees}")
-        print(f"Nombre de groupes où il/elle est membre : {nombreGroupesAppartenance}")
-        print(f"Total paiements effectués               : {sommeDesPaiements} FCFA")
-    print("----------------------------------------------------------------------------")
+    input("Appuyer sur entrer pour continuer ...")
 
 def changerMotDePasse():
-    print("---- Changement mot de passe utilisateur ----\n")
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Changement mot de passe utilisateur")
     telephone = input("Numéro de téléphone de l'utilisateur : ")
     utilisateur = createUser.getUserByTel(telephone)
     while(utilisateur is None):
@@ -76,9 +95,11 @@ def changerMotDePasse():
     hashedPassword = bcrypt.hashpw(nouveauMotDePasse.encode(), bcrypt.gensalt())
     connexion.cursor.execute("UPDATE utilisateur SET motDePasse = ? WHERE id = ?", (hashedPassword, utilisateur.id))
     print("Mot de passe changé avec succès!")
+    input("Appuyer sur entrer pour continuer ...")
 
 def getAllUtilisateurs():
     resources = connexion.con.execute("SELECT * FROM utilisateur").fetchall()
+    if not resources: return []
     utilisateurs = []
     for resource in resources:
         utilisateur = models.UtilisateurInfo(
@@ -113,6 +134,7 @@ def getAllPaymentByUserId(idUtilisateur: int) -> int:
 
 def getAllGroups():
     resources = connexion.con.execute("SELECT * FROM groupe").fetchall()
+    if(not resources): return []
     groupes = []
     for resource in resources:
         groupe = models.Groupe(
