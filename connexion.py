@@ -55,6 +55,11 @@ def initialize():
     "FOREIGN KEY(idNotification) REFERENCES notification(id), FOREIGN KEY(idUtilisateur) REFERENCES utilisateur(id), " \
     "PRIMARY KEY(idNotification, idUtilisateur))")
 
+    # Création de la table changement_mot_de_passe
+    con.execute("CREATE TABLE IF NOT EXISTS " \
+    "changement_mot_de_passe (id INTEGER PRIMARY KEY NOT NULL, idAdministrateur INTEGER NOT NULL, idUtilisateur INTEGER NOT NULL, dateModification TEXT NOT NULL, " \
+    "FOREIGN KEY(idAdministrateur) REFERENCES administrateur(id), FOREIGN KEY(idUtilisateur) REFERENCES utilisateur(id))")
+
 def isAdminAllReadyCreated() -> bool: 
     res = con.execute("SELECT * FROM administrateur WHERE telephone = '70313104' AND prenom = 'Mohamed' AND nom = 'Diop'").fetchone()
     if(res is not None): 

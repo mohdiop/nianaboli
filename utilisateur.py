@@ -1,4 +1,4 @@
-import connexion, models, createUser, depense as dep, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense, paiement, os, style, historiquePaiement, validPaiement
+import connexion, models, createUser, depense as dep, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense, paiement, os, style, historiquePaiement, validPaiement, modif_group
 
 
 class UtilisateurInfoGroupe:
@@ -87,9 +87,9 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
         os.system('clear' if os.name == 'posix' else 'cls')
         style.showStyledTitleCyan(f"Groupe {groupe.nom} créé le {groupe.dateCreation} par {userName}")
     
-    print("\n1.) Créer une dépense\n2.) Liste des dépenses\n3.) Ajouter membre\n4.) Liste des membres\n5.) Retour")
+    print("\n1.) Créer une dépense\n2.) Liste des dépenses\n3.) Ajouter membre\n4.) Liste des membres\n5.) Changer le nom du groupe\n6.) Retour")
     choix = int(input("Votre choix : "))
-    while(choix not in (1, 2, 3, 4, 5)):
+    while(choix not in (1, 2, 3, 4, 5, 6)):
         print("Choix invalide!")
         choix = int(input("Votre choix : "))
     
@@ -136,7 +136,15 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
         input("Appuyer sur entrer pour continuer ...")
         viewGroup(groupe, user)
     elif(choix == 5):
-        viewMyGroups(user)
+        trying = modif_group.modifier_groupe(groupe, user.id)
+        if(trying is None):
+            pass
+        else:
+            groupe = trying
+        input("Appuyer sur entrer pour continuer ...")
+        viewGroup(groupe, user)
+    elif(choix == 6):
+        userGroups(user)
 
 
 def viewExpenses(groupe: models.Groupe, user: models.UtilisateurInfo):
@@ -183,11 +191,13 @@ def showExpense(depense: models.Depense):
 
 def viewExpense(depense: models.Depense, groupe: models.Groupe, user: models.UtilisateurInfo):
     os.system('clear' if os.name == 'posix' else 'cls')
-    paiements = getCurrentPaiementStatus(depense)
+    validatedPaiements = getValidatedPaiementsSum(depense)
+    notValidatedPaiements = getNotValidatedPaiementsSum(depense)
     style.showStyledTitleCyan(f"Dépense : {depense.titre} créée le : {depense.dateCreation}")
-    style.showStyledTitleReset(f"Montant total à payer : {depense.montant} FCFA")
-    style.showStyledTitleGreen(f"Montant total payé    : {paiements} FCFA")
-    style.showStyledTitleYellow(f"Montant restant       : {depense.montant - paiements} FCFA")
+    style.showStyledTitleReset(f"Montant total à payer           : {depense.montant} FCFA")
+    style.showStyledTitleGreen(f"Montant total payé (Validé)     : {validatedPaiements} FCFA")
+    style.showStyledTitleGreen(f"Montant total payé (Non Validé) : {notValidatedPaiements} FCFA")
+    style.showStyledTitleYellow(f"Montant restant                 : {depense.montant - (validatedPaiements+notValidatedPaiements)} FCFA")
     print("1.) Voir les paiements\n2.) Faire un paiement\n3.) Valider un paiement\n4.) Retour")
     choix = int(input("Votre choix : "))
     match choix:
@@ -206,8 +216,13 @@ def viewExpense(depense: models.Depense, groupe: models.Groupe, user: models.Uti
         case 4:
             viewExpenses(groupe, user)
 
-def getCurrentPaiementStatus(depense: models.Depense):
-    resource = connexion.cursor.execute("SELECT SUM(montant) FROM paiement WHERE idDepense = ?", (depense.id,)).fetchone()
+def getValidatedPaiementsSum(depense: models.Depense):
+    resource = connexion.cursor.execute("SELECT SUM(montant) FROM paiement WHERE idDepense = ? AND estValide = 1", (depense.id,)).fetchone()
+    if resource[0] is None: return 0
+    else: return resource[0]
+
+def getNotValidatedPaiementsSum(depense: models.Depense):
+    resource = connexion.cursor.execute("SELECT SUM(montant) FROM paiement WHERE idDepense = ? AND estValide = 0", (depense.id,)).fetchone()
     if resource[0] is None: return 0
     else: return resource[0]
 

@@ -11,12 +11,12 @@ def creation_depense(id_createur_depense, id_groupe):
         WHERE idUtilisateur = ? AND idGroupe = ? AND role = 'ADMINISTRATEUR'
     """, (id_createur_depense, id_groupe))
     est_admin = cursor.fetchone() is not None
-
-    if not est_admin:
-        return " Seul un administrateur peut créer une dépense."
-
     os.system('clear' if os.name == 'posix' else 'cls')
     style.showStyledTitleCyan("Création Dépense")
+    if not est_admin:
+        return "Seul un administrateur peut créer une dépense."
+
+
     titre = input("Titre de la dépense : ")
     description = input("Description de la dépense : ")
     

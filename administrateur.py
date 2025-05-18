@@ -1,4 +1,5 @@
 import connexion, models, bcrypt, createUser, utilisateur, main, style, os
+from datetime import datetime
 
 def seConnecter():
     os.system('clear' if os.name == 'posix' else 'cls')
@@ -18,7 +19,7 @@ def seConnecter():
 def adminDashboard(admin: models.Administrateur):
     os.system('clear' if os.name == 'posix' else 'cls')
     style.showStyledTitleGreen(f"Bienvenue sur votre Dashboard {admin.prenom} {admin.nom}")
-    print("1.) Lister tous les groupes\n2.) Lister les utilisateurs\n3.) Changer le mot de passe d'un utilisateur\n4.) Se déconnecter\n")
+    print("1.) Lister tous les groupes\n2.) Lister les utilisateurs\n3.) Changer le mot de passe d'un utilisateur\n4.) Voir historique des changements de mot de passe \n5.) Se déconnecter\n")
 
     choix = int(input("Votre choix : "))
     while(choix not in (1, 2, 3, 4)):
@@ -35,8 +36,10 @@ def adminDashboard(admin: models.Administrateur):
                 print("\nAucun utilisateur dans le système\n")
                 input("Appuyer entrer pour revenir au dashboard ...")
             else:
-                changerMotDePasse()
-        case 4:
+                changerMotDePasse(admin)
+        case 4: 
+            voirHistoriqueChangements(admin)
+        case 5:
             main.authentification()
 
     adminDashboard(admin)
@@ -83,7 +86,7 @@ def voirUtilisateurs():
         print("----------------------------------------------------------------------------")
     input("Appuyer sur entrer pour continuer ...")
 
-def changerMotDePasse():
+def changerMotDePasse(admin: models.Administrateur):
     os.system('clear' if os.name == 'posix' else 'cls')
     style.showStyledTitleGreen("Changement mot de passe utilisateur")
     telephone = input("Numéro de téléphone de l'utilisateur : ")
@@ -91,11 +94,41 @@ def changerMotDePasse():
     while(utilisateur is None):
         telephone = input("Utilisateur introuvable! \nRévérifiez le numéro de téléphone: ")
         utilisateur = createUser.getUserByTel(telephone)
+    print(f"\nVous vous apprêtez à changer le mot de passe de {utilisateur.prenom} {utilisateur.nom}\n")
     nouveauMotDePasse = input("Veuillez entrer le nouveau mot de passe : ")
     hashedPassword = bcrypt.hashpw(nouveauMotDePasse.encode(), bcrypt.gensalt())
+    connexion.con.autocommit = False
     connexion.cursor.execute("UPDATE utilisateur SET motDePasse = ? WHERE id = ?", (hashedPassword, utilisateur.id))
+    date = f"{datetime.now().strftime("%d-%m-%Y")} à {datetime.now().strftime("%H:%M:%S")}"
+    connexion.cursor.execute("INSERT INTO changement_mot_de_passe (idAdministrateur, idUtilisateur, dateModification) VALUES (?, ?, ?)", (admin.id, utilisateur.id, date))
+    connexion.con.commit()
+    connexion.con.autocommit = True
     print("Mot de passe changé avec succès!")
     input("Appuyer sur entrer pour continuer ...")
+
+def voirHistoriqueChangements(admin: models.Administrateur):
+    changements = getHistoriqueChangements(admin.id)
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitleGreen("Historiques de vos changements de mot de passe")
+    for changement in changements:
+        utilisateur = createUser.getUserById(changement.idUtilisateur)
+        print(f"Vous avez changé le mot de passe de {utilisateur.prenom} {utilisateur.nom} le {changement.dateModification}")
+        print("---------------------------------------------------------------------------")
+    input("Appuyer entrer pour continuer ...")
+
+def getHistoriqueChangements(idAdmin):
+    resources = connexion.cursor.execute("SELECT * FROM changement_mot_de_passe WHERE idAdministrateur = ? ORDER BY id DESC", (idAdmin,)).fetchall()
+    if not resources: return []
+    changements = []
+    for resource in resources:
+        changement = models.ChangementMotDePasse(
+            resource[0],
+            resource[1],
+            resource[2],
+            resource[3]
+        )
+        changements.append(changement)
+    return changements
 
 def getAllUtilisateurs():
     resources = connexion.con.execute("SELECT * FROM utilisateur").fetchall()

@@ -7,7 +7,7 @@ def showStyledTitleCyan(message):
     bottom = f"╚{border}╝"
     middle = f"║  {message}  ║"
 
-    print(Fore.MAGENTA + Style.BRIGHT + top)
+    print(Fore.CYAN + Style.BRIGHT + top)
     print(middle)
     print(bottom + Style.RESET_ALL)
 

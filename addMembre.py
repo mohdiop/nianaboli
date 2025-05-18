@@ -1,9 +1,11 @@
-import models, connexion, createUser
+import models, connexion, createUser, os, style
 from datetime import datetime
 
 def addMember(admin: models.UtilisateurInfo, groupe: models.Groupe):
     res = connexion.cursor.execute("SELECT * FROM appartenance WHERE idUtilisateur = ? AND idGroupe = ? AND role = 'ADMINISTRATEUR'", (admin.id, groupe.id)).fetchone()
     estAdmin = res is not None
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitleCyan("Ajout d'un membre")
     if not estAdmin :
         print("Seul l'administrateur du groupe peut ajouter des membres!")
         return

@@ -135,3 +135,10 @@ class RecevoirNotification:
     def __init__(self, idUtilisateur, idNotification):
         self.idUtilisateur = idUtilisateur
         self.idNotification = idNotification
+
+class ChangementMotDePasse:
+    def __init__(self, id, idAdministrateur, idUtilisateur, dateModification):
+        self.id  = id
+        self.idAdministrateur = idAdministrateur
+        self.idUtilisateur = idUtilisateur
+        self.dateModification = dateModification
