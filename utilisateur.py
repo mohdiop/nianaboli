@@ -1,24 +1,5 @@
-import connexion, models, createUser, Depense, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense, paiement
+import connexion, models, createUser, depense as dep, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense, paiement, os, style
 
-def viewStatisque():
-    print("\n\n--------- Statistiques ---------\n\n")
-    print("--------- Les groupes crées ---------\n")
-    viewAllGroups()
-
-def viewAllGroups(): 
-    groupes = getAllGroups()
-    for groupe in groupes:
-        proprietaire = createUser.getUserById(groupe.utilisateur.id)
-        membres = getMembersByGroupId(groupe.id)
-        print("----------------------------------------------------------------------------")
-        print(groupes.index(groupe)+1)
-        print(f"Nom du groupe : {groupe.nom}")
-        print(f"Créé par      : {proprietaire.prenom} {proprietaire.nom}")
-        print(f"Le            : {groupe.dateCreation}")
-        print(f"\nLes membres du groupe {groupes.index(groupe)+1}\n")
-        for membre in membres: 
-            print(f"| Nom : {membre.utilisateur.prenom} {membre.utilisateur.nom} Tel : {membre.utilisateur.telephone} ajouté le {membre.dateAjout}")
-    print("----------------------------------------------------------------------------")
 
 class UtilisateurInfoGroupe:
     def __init__(self, utilisateur: models.UtilisateurInfo, dateAjout):
@@ -42,23 +23,9 @@ def getMembersByGroupId(idGroup):
         membres.append(membre)
     return membres
 
-def getAllGroups():
-    resources = connexion.con.execute("SELECT * FROM groupe").fetchall()
-    groupes = []
-    for resource in resources:
-        groupe = models.Groupe(
-            nom=resource[1],
-            dateCreation=resource[2],
-            idUtilisateur=resource[3]
-        )
-        groupe.setId(resource[0])
-        groupes.append(groupe)
-    groupes.sort()
-    return groupes
-
 def getUserGroupsByUserId(userId):
-    resources = connexion.cursor.execute("SELECT * FROM groupe INNER JOIN appartenance ON groupe.id = appartenance.idGroupe WHERE appartenance.idUtilisateur = ? AND appartenance.role = 'ADMINISTRATEUR'", (userId,)).fetchall()
-    if(resources is None): return None
+    resources = connexion.cursor.execute("SELECT * FROM groupe WHERE idUtilisateur = ?", (userId,)).fetchall()
+    if(not resources): return []
     groupes = []
     for resource in resources:
         groupe = models.Groupe(
@@ -72,7 +39,7 @@ def getUserGroupsByUserId(userId):
 
 def getRelatedGroups(userId):
     resources = connexion.cursor.execute("SELECT * FROM groupe INNER JOIN appartenance ON groupe.id = appartenance.idGroupe WHERE appartenance.idUtilisateur = ? AND appartenance.role = 'MEMBRE'", (userId,)).fetchall()
-    if(resources is None): return None
+    if(not resources): return []
     groupes = []
     for resource in resources:
         groupe = models.Groupe(
@@ -85,39 +52,40 @@ def getRelatedGroups(userId):
     return groupes
 
 def viewMyGroups(user):
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Vos groupes créés")
     groupes = getUserGroupsByUserId(user.id)
-    if(groupes is None or groupes == []):
+    if(not groupes):
         print("\nVous n'avez créé aucun groupe\n")
+        input("Appuyer sur entrer pour continuer ...")
         userGroups(user)
     else:
-        print("------------------------------ Mes Groupes ---------------------------------")
-        print("----------------------------------------------------------------------------")
-        indexes = []
+        indexes = [0,]
         for groupe in groupes:
             indexes.append(groupes.index(groupe) + 1)
             print(f"\nGroupe n°{groupes.index(groupe) + 1}")
             print(f"\nNom du groupe  : {groupe.nom}")
-            print(f"\nCréé le        : {groupe.dateCreation}\n\n")
-        print("----------------------------------------------------------------------------")
-        choix = int(input("1.) Visualiser un groupe en particulier\n2.) Retour\n\nVotre choix : "))
-        if(choix == 2):
+            print(f"\nCréé le        : {groupe.dateCreation}\n")
+            print("----------------------------------------------------------------------------")
+        choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
+        while(choix not in indexes):
+            print("Choix invalide!")
+            choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
+        if(choix == 0):
             userGroups(user)
         else:
-            print("Choisissez le numéro du groupe à visualiser\n")
-            choix = int(input("Votre choix : "))
-            while(choix not in indexes):
-                print("Ce numéro ne figure pas dans les groupes affichés!")
-                choix = int(input("Votre choix : "))
             viewGroup(groupes[choix-1], user)
-            userGroups(user)
+    userGroups(user)
 
 def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
     if(groupe.utilisateur.id == user.id):
-        print(f"\nGroupe {groupe.nom} créé le {groupe.dateCreation} par moi")
+        os.system('clear' if os.name == 'posix' else 'cls')
+        style.showStyledTitle(f"Groupe {groupe.nom} créé le {groupe.dateCreation} par vous")
     else:
         administrateur = createUser.getUserById(groupe.utilisateur.id)
         userName = administrateur.prenom + " " + administrateur.nom
-        print(f"\nGroupe {groupe.nom} créé le {groupe.dateCreation} par {userName}")
+        os.system('clear' if os.name == 'posix' else 'cls')
+        style.showStyledTitle(f"Groupe {groupe.nom} créé le {groupe.dateCreation} par {userName}")
     
     print("\n1.) Créer une dépense\n2.) Liste des dépenses\n3.) Ajouter membre\n4.) Liste des membres\n5.) Retour")
     choix = int(input("Votre choix : "))
@@ -126,9 +94,10 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
         choix = int(input("Votre choix : "))
     
     if(choix == 1):
-        depense = Depense.creation_depense(user.id, groupe.id)
+        depense = dep.creation_depense(user.id, groupe.id)
         if(type(depense) is not models.Depense):
             print(depense)
+            input("Appuyer entrer pour continuer ...")
             viewGroup(groupe, user)
         else:
             print("1.) Répartition automatique\n2.) Répartition manuelle")
@@ -139,18 +108,22 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
             members = getMembersByGroupId(groupe.id)
             members.append(UtilisateurInfoGroupe(groupe.utilisateur, ""))
             if(choix == 1):
-                resultat = repartition_auto.repartitionAuto(depense, members)
+                resultat = repartition_auto.repartitionAuto(depense, members, groupe.nom)
                 print(resultat)
             else:
-                resultat = repartiton_manuelle.repartiotionManuelle(depense, members)
+                resultat = repartiton_manuelle.repartiotionManuelle(depense, members, groupe.nom)
                 print(resultat)
+            input("Appuyer entrer pour continuer ...")
+
     elif(choix == 2):
         viewExpenses(groupe, user)
     elif(choix == 3):
         addMembre.addMember(user, groupe)
+        input("Appuyer sur entrée pour continuer ...")
         viewGroup(groupe, user)
     elif(choix == 4):
-        print(f"Les membres du Groupe {groupe.nom}\n")
+        os.system('clear' if os.name == 'posix' else 'cls')
+        style.showStyledTitle(f"Les membres du Groupe {groupe.nom}")
         membres = getMembersByGroupId(groupe.id)
         admin = UtilisateurInfoGroupe(
             createUser.getUserById(groupe.utilisateur.id),
@@ -160,16 +133,20 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
         membres.append(admin)
         for membre in membres:
             print(f"{membre.utilisateur.prenom} {membre.utilisateur.nom} -- Rôle : {membre.role}\n")
+        input("Appuyer sur entrer pour continuer ...")
         viewGroup(groupe, user)
     elif(choix == 5):
         viewMyGroups(user)
 
 
 def viewExpenses(groupe: models.Groupe, user: models.UtilisateurInfo):
-    print(f"-------------------------- Dépenses Groupe {groupe.nom}----------------------------")
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle(f"Dépenses Groupe {groupe.nom}")
     depenses = getAllExpensesByGroupId(groupe.id)
-    if(depenses is None):
+    if(not depenses):
         print("\nAucune dépense pour ce groupe\n")
+        input("Appuyer entrer pour continuer ...")
+        viewGroup(groupe, user)
     else:
         indexes = []
         for depense in depenses:
@@ -177,25 +154,26 @@ def viewExpenses(groupe: models.Groupe, user: models.UtilisateurInfo):
             indexes.append(index+1)
             print(f"Dépense n°       : {index+1}")
             showExpense(depense)
-    print("\n1.) Voir une dépense en particulier\n2.) Supprimer une dépense\n3.) Retour\n")
-    choix = int(input("Votre choix : "))
-    while(choix not in (1, 2, 3)):
-        print("Choix invalide!")
+            print("----------------------------------------------------------------------------")
+        print("\n1.) Voir une dépense en particulier\n2.) Supprimer une dépense\n3.) Retour\n")
         choix = int(input("Votre choix : "))
-    
-    match choix:
-        case 1:
-            print("Veuillez fournir le numéro de la dépense\n")
+        while(choix not in (1, 2, 3)):
+            print("Choix invalide!")
             choix = int(input("Votre choix : "))
-            while(choix not in indexes):
-                print("Numéro invalide veuillez fournir un numéro valide!")
-                choix = int(input("Votre choix : "))
-            viewExpense(depenses[choix-1], groupe, user)
-        case 2:
-            SuppressionDepense.supprimer_depense_par_titre(user.id, groupe.id)
-            viewGroup(groupe, user)
-        case 3:
-            viewGroup(groupe, user)
+        
+        match choix:
+            case 1:
+                choix = int(input("Numéro de la dépense : "))
+                while(choix not in indexes):
+                    print("Numéro invalide veuillez fournir un numéro valide!")
+                    choix = int(input("Numéro de la dépense : "))
+                viewExpense(depenses[choix-1], groupe, user)
+            case 2:
+                SuppressionDepense.supprimer_depense_par_titre(user.id, groupe.id)
+                input("Appuer entrer pour continuer ...")
+                viewGroup(groupe, user)
+            case 3:
+                viewGroup(groupe, user)
 
 def showExpense(depense: models.Depense):
     print(f"Titre            : {depense.titre}")
@@ -204,23 +182,26 @@ def showExpense(depense: models.Depense):
     print(f"Montant          : {depense.montant} FCFA\n")
 
 def viewExpense(depense: models.Depense, groupe: models.Groupe, user: models.UtilisateurInfo):
-    showExpense(depense)
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle(f"Dépense : {depense.titre} créée le : {depense.dateCreation}")
     print("1.) Voir les paiements\n2.) Faire un paiement\n3.) Retour")
     choix = int(input("Votre choix : "))
     match choix:
         case 1:
-            pass
+            print("\nC'est pas encore développé\n")
+            input("Appuyer sur entrer pour continuer ...")
+            viewExpense(depense, groupe, user)
         case 2:
             paiement.effectuer_paiement(user, groupe, depense)
-            viewExpenses(groupe, user)
+            input("Appuyer sur entrer pour continuer ...")
+            viewExpense(depense, groupe, user)
         case 3:
             viewExpenses(groupe, user)
 
 
-def getAllExpensesByGroupId(idGroup: int) -> list:
+def getAllExpensesByGroupId(idGroup: int):
     resources = connexion.cursor.execute("SELECT * FROM depense WHERE idGroupe = ?", (idGroup,)).fetchall()
-    if(resources is None):
-        return None
+    if(not resources): return []
     depenses = []
     for resource in resources:
         depense = models.Depense(
@@ -236,13 +217,14 @@ def getAllExpensesByGroupId(idGroup: int) -> list:
 
 
 def viewRelatedGroups(user):
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Groupes dans lesquels vous êtes membres")
     groupes = getRelatedGroups(user.id)
-    if(groupes is None or groupes == []):
+    if(not groupes):
         print("\nVous ne faites partie d'aucun groupe\n")
+        input("Appuyer entrer pour continuer ...")
     else:
-        print("----------------------- Groupes dans lesquels je suis ----------------------")
-        print("----------------------------------------------------------------------------")
-        indexes = []
+        indexes = [0,]
         for groupe in groupes:
             adminGroupe = createUser.getUserById(groupe.utilisateur.id)
             indexes.append(groupes.index(groupe) + 1)
@@ -250,21 +232,26 @@ def viewRelatedGroups(user):
             print(f"\nNom du groupe  : {groupe.nom}")
             print(f"\nCréé le        : {groupe.dateCreation}")
             print(f"\nAdministrateur : {adminGroupe.prenom} {adminGroupe.nom}\n")
-        print("----------------------------------------------------------------------------")
-    choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
-    indexes.append(0)
-    while(choix not in indexes):
-        print("Choix invalide!")
+            print("----------------------------------------------------------------------------")
         choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
-    if(choix == 0):
-        userGroups(user)
-    else:
-        viewGroup(groupes[choix-1], user)
+        while(choix not in indexes):
+            print("Choix invalide!")
+            choix = int(input("Pour visualiser un groupe entrer son numéro ou 0 pour retourner : "))
+        if(choix == 0):
+            userGroups(user)
+        else:
+            viewGroup(groupes[choix-1], user)
+    userGroups(user)
 
 def userGroups(user: models.UtilisateurInfo):
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("GROUPES")
     print("\n1.) Mes groupes créés\n2.) Ceux dans lesquels je suis membre\n3.) Retour\n")
     choix = int(input("Votre choix : "))
-    
+    while(choix not in (1, 2, 3)):
+        print("Choix invalide!")
+        choix = int(input("Votre choix : "))
+
     match choix:
         case 1:
             viewMyGroups(user)

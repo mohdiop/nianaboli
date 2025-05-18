@@ -1,9 +1,10 @@
-import connexion
+import connexion, os, style
 from datetime import datetime
 import models
 
 def effectuer_paiement(utilisateur: models.UtilisateurInfo, groupe: models.Groupe, depense: models.Depense):
-    print("\n--- Effectuer un paiement ---")
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Faire un paiement")
     
     depense_selectionnee = depense
     
@@ -21,7 +22,7 @@ def effectuer_paiement(utilisateur: models.UtilisateurInfo, groupe: models.Group
     
     # Étape 6: Demander le montant à payer
     print(f"\nMontant à payer pour cette dépense: {montant_a_payer} FCFA")
-    montant_paye = float(input("Entrez le montant que vous payez: "))
+    montant_paye = float(input("Entrez le montant que vous payez : "))
     
     if montant_paye < montant_a_payer:
         print(f"Attention: vous payez moins que le montant dû ({montant_a_payer} FCFA)")
@@ -36,8 +37,8 @@ def effectuer_paiement(utilisateur: models.UtilisateurInfo, groupe: models.Group
     # Étape 8: Notifier l'administrateur
     notifier_administrateur(groupe, utilisateur, depense_selectionnee, montant_paye)
     
-    print("\nPaiement enregistré avec succès! Il sera validé par l'administrateur du groupe.")
-
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Paiement effectué, il sera validé par l'administrateur")
 def get_user_participation(user_id, expense_id):
     """Vérifie si l'utilisateur participe à une dépense et retourne sa participation"""
     res = connexion.con.execute(

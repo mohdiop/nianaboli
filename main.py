@@ -1,13 +1,12 @@
-import connexion, createUser, connectUser, models, creationgroupe, sys, utilisateur as u, notification
+import connexion, createUser, connectUser, models, creationGroupe, sys, utilisateur as u, notification, administrateur, style, os
 
 connexion.initialize()
 
 def authentification():
-    import os
     os.system('clear' if os.name == 'posix' else 'cls')
-    print("\n\n------------- Bienvenue sur Nianaboli, votre console de gestion de dépenses collaboratives -------------\n\n")
-    choix = 0
-    while(choix not in (1, 2, 3, 4)):
+    style.showStyledTitle("Bienvenue sur Nianaboli, votre console de gestion de dépenses collaboratives")
+    choix = 109309
+    while(choix not in (1, 2, 3, 0)):
         print("1.) Connexion\n2.) Inscription\n3.) Quitter\n")
         choix = int(input("Votre choix : "))
 
@@ -19,24 +18,26 @@ def authentification():
         case 2: 
             user = createUser.creationProcess()
         case 3:
-            sys.exit("À bientôt!")
+            os.system('clear' if os.name == 'posix' else 'cls')
+            style.showStyledTitle("À bientôt!")
+            sys.exit()
+        case 0:
+            administrateur.seConnecter()
     if(user is None):
         authentification()
     else:
         menuPrincipal(user)
 
 def menuPrincipal(utilisateur: models.UtilisateurInfo):
-    import os
     os.system('clear' if os.name == 'posix' else 'cls')
-    print(f"\nBienvenue {utilisateur.prenom} {utilisateur.nom} :)\n")
-    print("----------------------------------------------------------------------------")
+    style.showStyledTitle(f"Bienvenue {utilisateur.prenom} {utilisateur.nom}")
     print("\n1.) Créer un groupe\n2.) Visualiser mes groupes\n3.) Notifications\n4.) Se déconnecter\n")
 
     choix = int(input("Votre choix : "))
 
     match choix:
         case 1:
-            creationgroupe.creationGroupe(utilisateur)
+            creationGroupe.creationGroupe(utilisateur)
         case 2: 
             u.userGroups(utilisateur)
         case 3:
@@ -46,4 +47,9 @@ def menuPrincipal(utilisateur: models.UtilisateurInfo):
             authentification()
 
 if (__name__ == '__main__'):
-    authentification() 
+    try:
+        authentification() 
+    except (ValueError, KeyboardInterrupt, EOFError) as e:
+        os.system('clear' if os.name == 'posix' else 'cls')
+        style.showStyledTitle(f"La console s'est arrêtée, raison : {type(e)}")
+        sys.exit()

@@ -1,13 +1,15 @@
-import connexion, models
+import connexion, models, os, style
 from datetime import datetime
 
-def repartiotionManuelle(depense: models.Depense, members: list):
+def repartiotionManuelle(depense: models.Depense, members: list, nomGroupe: str):
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Répartition Manuelle")
     print("Montant à payer pour :")
     connexion.con.autocommit = False
     for member in members:
         montantAPayerPourMembre = int(input(f"- {member.utilisateur.prenom} {member.utilisateur.nom} : "))
         notification = models.Notification(
-            "Création Dépense",
+            f"Création de dépense dans le groupe {nomGroupe}",
             f"Vous contribuez désormais à la dépense {depense.titre}, votre montant à payer est : {montantAPayerPourMembre} FCFA",
             f"{datetime.now().strftime("%d-%m-%Y")} à {datetime.now().strftime("%H:%M:%S")}"
         )

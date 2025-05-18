@@ -1,12 +1,12 @@
 from datetime import datetime
 import models, connexion
 
-def repartitionAuto(depense: models.Depense, members: list):
+def repartitionAuto(depense: models.Depense, members: list, nomGroupe: str):
     montantTotal = depense.montant
     montantAPayer = montantTotal // len(members)
     idDepense = depense.id
     notification = models.Notification(
-        "Création Dépense",
+        f"Création de dépense dans le groupe {nomGroupe}",
         f"Vous contribuez désormais à la dépense {depense.titre}, votre montant à payer est : {montantAPayer} FCFA",
         f"{datetime.now().strftime("%d-%m-%Y")} à {datetime.now().strftime("%H:%M:%S")}"
     )

@@ -1,7 +1,8 @@
-import connexion, models
+import connexion, models, os, style
 
 def viewNotifications(utilisateur):
-    print("----------------------------- Notifications --------------------------------")
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Mes notifications")
     notifs = getNotificationsByUserId(utilisateur.id)
     if(len(notifs) == 0):
         print("\nVous n'avez pas de notifications\n")
@@ -11,14 +12,15 @@ def viewNotifications(utilisateur):
             print(f"\nTitre   : {notif.titre}")
             print(f"\nDate    : {notif.date}")
             print(f"\nContenu : {notif.contenu}\n")
-        print("----------------------------------------------------------------------------")
+            print("----------------------------------------------------------------------------")
         connexion.cursor.execute("UPDATE recevoir_notification SET estVu = 1 WHERE idNotification = ? AND idUtilisateur = ? AND estVu = 0", (notif.id, utilisateur.id))
 
+    input("Apopuyer entrer pour continuer ...")
     import main
     main.menuPrincipal(utilisateur)
 
 def getNotificationsByUserId(userId):
-    resources = connexion.cursor.execute("SELECT * FROM notification INNER JOIN recevoir_notification ON recevoir_notification.idNotification = notification.id WHERE recevoir_notification.idUtilisateur = ? ORDER BY recevoir_notification.estVu", (userId,))
+    resources = connexion.cursor.execute("SELECT * FROM notification INNER JOIN recevoir_notification ON recevoir_notification.idNotification = notification.id WHERE recevoir_notification.idUtilisateur = ? ORDER BY notification.id DESC", (userId,))
     if(resources is None): return None
     notifications = []
     for resource in resources:

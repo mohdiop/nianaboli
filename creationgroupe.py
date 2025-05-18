@@ -1,9 +1,9 @@
-import models, createUser, connexion, utilisateur
+import models, createUser, connexion, utilisateur, os, style
 from datetime import datetime
 
 def creationGroupe(user: models.UtilisateurInfo):
-    print("------------------------- Création de groupe ----------------------------")
-    print("\n")
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitle("Création de groupe")
     nom = input("Le nom de votre groupe de dépense : ")
     groupe = user.creerGroupe(nom)
 
@@ -36,6 +36,8 @@ def creationGroupe(user: models.UtilisateurInfo):
             notification.setId(connexion.cursor.lastrowid)
             connexion.cursor.execute("INSERT INTO recevoir_notification (idNotification, idUtilisateur, estVu) VALUES (?, ?, ?)", (notification.id, ajoutMembre.idUtilisateur, 0))
         choix = int(input("Voulez-vous ajouter un membre? (1 = oui/ autres chiffres = non)\n"))
+    print("\nGroupe créé avec succès\n")
+    input("Appuyer sur entrer pour continuer ...")
     utilisateur.userGroups(user)
 
 def isAllreadyAMember(userId, groupId):

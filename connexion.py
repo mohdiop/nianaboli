@@ -1,4 +1,5 @@
-import sqlite3
+import sqlite3, bcrypt
+
 
 con = sqlite3.connect("nianaboli.db")
 cursor = con.cursor()
@@ -28,6 +29,11 @@ def initialize():
     con.execute("CREATE TABLE IF NOT EXISTS " \
     "administrateur (id INTEGER PRIMARY KEY AUTOINCREMENT, nom TEXT NOT NULL, prenom TEXT NOT NULL, telephone TEXT NOT NULL, motDePasse TEXT NOT NULL)")
 
+    #Ajout de l'administrateur par défaut au système
+    if(not isAdminAllReadyCreated()):
+        values = ("Diop", "Mohamed", "70313104", "$2a$12$U8Fwf.pJJP9iq4zbIVSLfe9Zgh.g819krPZQJE/BXk26GPLxa1yEm")
+        con.execute("INSERT INTO administrateur (nom, prenom, telephone, motDePasse) VALUES (?, ?, ?, ?)", values)
+
     # Création de la table appartenance
     con.execute("CREATE TABLE IF NOT EXISTS " \
     "appartenance (idUtilisateur INTEGER NOT NULL, idGroupe INTEGER NOT NULL, dateAjout TEXT NOT NULL, role TEXT CHECK(role IN ('ADMINISTRATEUR', 'MEMBRE')), " \
@@ -48,3 +54,10 @@ def initialize():
     "recevoir_notification (idNotification INTEGER NOT NULL, idUtilisateur INTEGER NOT NULL, estVu INTEGER CHECK(estVu IN (0,1)), " \
     "FOREIGN KEY(idNotification) REFERENCES notification(id), FOREIGN KEY(idUtilisateur) REFERENCES utilisateur(id), " \
     "PRIMARY KEY(idNotification, idUtilisateur))")
+
+def isAdminAllReadyCreated() -> bool: 
+    res = con.execute("SELECT * FROM administrateur WHERE telephone = '70313104' AND prenom = 'Mohamed' AND nom = 'Diop'").fetchone()
+    if(res is not None): 
+        return True
+    else: 
+        return False
