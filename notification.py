@@ -2,7 +2,7 @@ import connexion, models, os, style
 
 def viewNotifications(utilisateur):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Mes notifications")
+    style.showStyledTitleCyan("Mes notifications")
     notifs = getNotificationsByUserId(utilisateur.id)
     if(len(notifs) == 0):
         print("\nVous n'avez pas de notifications\n")

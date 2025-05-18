@@ -1,4 +1,4 @@
-import connexion, models, createUser, depense as dep, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense, paiement, os, style
+import connexion, models, createUser, depense as dep, repartition_auto, repartiton_manuelle, addMembre, SuppressionDepense, paiement, os, style, historiquePaiement, validPaiement
 
 
 class UtilisateurInfoGroupe:
@@ -53,7 +53,7 @@ def getRelatedGroups(userId):
 
 def viewMyGroups(user):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Vos groupes créés")
+    style.showStyledTitleCyan("Vos groupes créés")
     groupes = getUserGroupsByUserId(user.id)
     if(not groupes):
         print("\nVous n'avez créé aucun groupe\n")
@@ -80,12 +80,12 @@ def viewMyGroups(user):
 def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
     if(groupe.utilisateur.id == user.id):
         os.system('clear' if os.name == 'posix' else 'cls')
-        style.showStyledTitle(f"Groupe {groupe.nom} créé le {groupe.dateCreation} par vous")
+        style.showStyledTitleCyan(f"Groupe {groupe.nom} créé le {groupe.dateCreation} par vous")
     else:
         administrateur = createUser.getUserById(groupe.utilisateur.id)
         userName = administrateur.prenom + " " + administrateur.nom
         os.system('clear' if os.name == 'posix' else 'cls')
-        style.showStyledTitle(f"Groupe {groupe.nom} créé le {groupe.dateCreation} par {userName}")
+        style.showStyledTitleCyan(f"Groupe {groupe.nom} créé le {groupe.dateCreation} par {userName}")
     
     print("\n1.) Créer une dépense\n2.) Liste des dépenses\n3.) Ajouter membre\n4.) Liste des membres\n5.) Retour")
     choix = int(input("Votre choix : "))
@@ -123,7 +123,7 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
         viewGroup(groupe, user)
     elif(choix == 4):
         os.system('clear' if os.name == 'posix' else 'cls')
-        style.showStyledTitle(f"Les membres du Groupe {groupe.nom}")
+        style.showStyledTitleCyan(f"Les membres du Groupe {groupe.nom}")
         membres = getMembersByGroupId(groupe.id)
         admin = UtilisateurInfoGroupe(
             createUser.getUserById(groupe.utilisateur.id),
@@ -141,7 +141,7 @@ def viewGroup(groupe: models.Groupe, user: models.UtilisateurInfo):
 
 def viewExpenses(groupe: models.Groupe, user: models.UtilisateurInfo):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle(f"Dépenses Groupe {groupe.nom}")
+    style.showStyledTitleCyan(f"Dépenses Groupe {groupe.nom}")
     depenses = getAllExpensesByGroupId(groupe.id)
     if(not depenses):
         print("\nAucune dépense pour ce groupe\n")
@@ -183,20 +183,33 @@ def showExpense(depense: models.Depense):
 
 def viewExpense(depense: models.Depense, groupe: models.Groupe, user: models.UtilisateurInfo):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle(f"Dépense : {depense.titre} créée le : {depense.dateCreation}")
-    print("1.) Voir les paiements\n2.) Faire un paiement\n3.) Retour")
+    paiements = getCurrentPaiementStatus(depense)
+    style.showStyledTitleCyan(f"Dépense : {depense.titre} créée le : {depense.dateCreation}")
+    style.showStyledTitleReset(f"Montant total à payer : {depense.montant} FCFA")
+    style.showStyledTitleGreen(f"Montant total payé    : {paiements} FCFA")
+    style.showStyledTitleYellow(f"Montant restant       : {depense.montant - paiements} FCFA")
+    print("1.) Voir les paiements\n2.) Faire un paiement\n3.) Valider un paiement\n4.) Retour")
     choix = int(input("Votre choix : "))
     match choix:
         case 1:
-            print("\nC'est pas encore développé\n")
-            input("Appuyer sur entrer pour continuer ...")
+            historiquePaiement.listPaie(depense.id, depense.idGroupe)
+            input("Appuyer entrer pour continuer ...")
             viewExpense(depense, groupe, user)
         case 2:
             paiement.effectuer_paiement(user, groupe, depense)
             input("Appuyer sur entrer pour continuer ...")
             viewExpense(depense, groupe, user)
         case 3:
+            validPaiement.valid_paiement(user.id, groupe.id, depense.id)
+            input("Appuyer entrer pour continuer ...")
+            viewExpense(depense, groupe, user)
+        case 4:
             viewExpenses(groupe, user)
+
+def getCurrentPaiementStatus(depense: models.Depense):
+    resource = connexion.cursor.execute("SELECT SUM(montant) FROM paiement WHERE idDepense = ?", (depense.id,)).fetchone()
+    if resource[0] is None: return 0
+    else: return resource[0]
 
 
 def getAllExpensesByGroupId(idGroup: int):
@@ -218,7 +231,7 @@ def getAllExpensesByGroupId(idGroup: int):
 
 def viewRelatedGroups(user):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Groupes dans lesquels vous êtes membres")
+    style.showStyledTitleCyan("Groupes dans lesquels vous êtes membres")
     groupes = getRelatedGroups(user.id)
     if(not groupes):
         print("\nVous ne faites partie d'aucun groupe\n")
@@ -245,7 +258,7 @@ def viewRelatedGroups(user):
 
 def userGroups(user: models.UtilisateurInfo):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("GROUPES")
+    style.showStyledTitleCyan("GROUPES")
     print("\n1.) Mes groupes créés\n2.) Ceux dans lesquels je suis membre\n3.) Retour\n")
     choix = int(input("Votre choix : "))
     while(choix not in (1, 2, 3)):

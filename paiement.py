@@ -4,7 +4,7 @@ import models
 
 def effectuer_paiement(utilisateur: models.UtilisateurInfo, groupe: models.Groupe, depense: models.Depense):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Faire un paiement")
+    style.showStyledTitleCyan("Faire un paiement")
     
     depense_selectionnee = depense
     
@@ -38,7 +38,7 @@ def effectuer_paiement(utilisateur: models.UtilisateurInfo, groupe: models.Group
     notifier_administrateur(groupe, utilisateur, depense_selectionnee, montant_paye)
     
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Paiement effectué, il sera validé par l'administrateur")
+    style.showStyledTitleCyan("Paiement effectué, il sera validé par l'administrateur")
 def get_user_participation(user_id, expense_id):
     """Vérifie si l'utilisateur participe à une dépense et retourne sa participation"""
     res = connexion.con.execute(
@@ -82,14 +82,14 @@ def notifier_administrateur(groupe, utilisateur, depense, montant):
     date_notif = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     # Enregistrer la notification
-    connexion.con.execute(
+    connexion.cursor.execute(
         "INSERT INTO notification (titre, contenu, date) VALUES (?, ?, ?)",
         (titre, contenu, date_notif))
     
     notification_id = connexion.cursor.lastrowid
     
     # Lier la notification à l'administrateur
-    connexion.con.execute(
+    connexion.cursor.execute(
         "INSERT INTO recevoir_notification (idNotification, idUtilisateur, estVu) "
         "VALUES (?, ?, ?)",
         (notification_id, admin_id, 0))

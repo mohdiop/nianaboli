@@ -2,7 +2,7 @@ import connexion, models, bcrypt, createUser, utilisateur, main, style, os
 
 def seConnecter():
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Connexion Admin")
+    style.showStyledTitleGreen("Connexion Admin")
     telephone = input("Votre numéro de téléphone: ")
     admin = getAdminByTel(telephone)
     while(admin is None):
@@ -17,7 +17,7 @@ def seConnecter():
 
 def adminDashboard(admin: models.Administrateur):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle(f"Bienvenue sur votre Dashboard {admin.prenom} {admin.nom}")
+    style.showStyledTitleGreen(f"Bienvenue sur votre Dashboard {admin.prenom} {admin.nom}")
     print("1.) Lister tous les groupes\n2.) Lister les utilisateurs\n3.) Changer le mot de passe d'un utilisateur\n4.) Se déconnecter\n")
 
     choix = int(input("Votre choix : "))
@@ -43,7 +43,7 @@ def adminDashboard(admin: models.Administrateur):
 
 def voirGroupes(): 
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Tous les groupes du système")
+    style.showStyledTitleGreen("Tous les groupes du système")
     groupes = getAllGroups()
     if (not groupes):
         print("\nAucun groupe dans le système\n")
@@ -64,7 +64,7 @@ def voirGroupes():
 
 def voirUtilisateurs():
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Tous les utilisateurs du système")
+    style.showStyledTitleGreen("Tous les utilisateurs du système")
     utilisateurs = getAllUtilisateurs()
     if(not utilisateurs):
         print("\nAucun utilisateur dans le système\n")
@@ -85,7 +85,7 @@ def voirUtilisateurs():
 
 def changerMotDePasse():
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Changement mot de passe utilisateur")
+    style.showStyledTitleGreen("Changement mot de passe utilisateur")
     telephone = input("Numéro de téléphone de l'utilisateur : ")
     utilisateur = createUser.getUserByTel(telephone)
     while(utilisateur is None):

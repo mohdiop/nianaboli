@@ -3,10 +3,16 @@ from datetime import datetime
 
 def repartiotionManuelle(depense: models.Depense, members: list, nomGroupe: str):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Répartition Manuelle")
-    print("Montant à payer pour :")
+    style.showStyledTitleCyan("Répartition Manuelle")
     connexion.con.autocommit = False
+    numberOfMember = len(members)
+    montantTotal = depense.montant
     for member in members:
+        montantAPayerPourMembre = 0
+        if(numberOfMember == len(members)):
+            print(f"\nMontant total de la dépense : {montantTotal}\nNombre d'utilisateurs : {numberOfMember}")
+        else:
+            print(f"\nMontant restant : {montantTotal}\nUtilisateur restant : {numberOfMember}")
         montantAPayerPourMembre = int(input(f"- {member.utilisateur.prenom} {member.utilisateur.nom} : "))
         notification = models.Notification(
             f"Création de dépense dans le groupe {nomGroupe}",
@@ -21,7 +27,8 @@ def repartiotionManuelle(depense: models.Depense, members: list, nomGroupe: str)
         connexion.cursor.execute("INSERT INTO participation (idUtilisateur, idDepense, montantAPayer) VALUES (?, ?, ?)", values)
         values = (notification.id, idUtilisateur, 0)
         connexion.cursor.execute("INSERT INTO recevoir_notification (idNotification, idUtilisateur, estVu) VALUES (?, ?, ?)", values)
-        print(f"\nMontant restant : {depense.montant - montantAPayerPourMembre}\nUtilisateur restant : {len(members) - 1}")
+        montantTotal = montantTotal-montantAPayerPourMembre
+        numberOfMember = numberOfMember-1
     connexion.con.commit()
     connexion.con.autocommit = True
     return "Répartition effectuée avec succès"

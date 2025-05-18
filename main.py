@@ -4,7 +4,7 @@ connexion.initialize()
 
 def authentification():
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Bienvenue sur Nianaboli, votre console de gestion de dépenses collaboratives")
+    style.showStyledTitleCyan("Bienvenue sur Nianaboli, votre console de gestion de dépenses collaboratives")
     choix = 109309
     while(choix not in (1, 2, 3, 0)):
         print("1.) Connexion\n2.) Inscription\n3.) Quitter\n")
@@ -19,7 +19,7 @@ def authentification():
             user = createUser.creationProcess()
         case 3:
             os.system('clear' if os.name == 'posix' else 'cls')
-            style.showStyledTitle("À bientôt!")
+            style.showStyledTitleCyan("À bientôt!")
             sys.exit()
         case 0:
             administrateur.seConnecter()
@@ -30,7 +30,7 @@ def authentification():
 
 def menuPrincipal(utilisateur: models.UtilisateurInfo):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle(f"Bienvenue {utilisateur.prenom} {utilisateur.nom}")
+    style.showStyledTitleCyan(f"Bienvenue {utilisateur.prenom} {utilisateur.nom}")
     print("\n1.) Créer un groupe\n2.) Visualiser mes groupes\n3.) Notifications\n4.) Se déconnecter\n")
 
     choix = int(input("Votre choix : "))
@@ -51,5 +51,5 @@ if (__name__ == '__main__'):
         authentification() 
     except (ValueError, KeyboardInterrupt, EOFError) as e:
         os.system('clear' if os.name == 'posix' else 'cls')
-        style.showStyledTitle(f"La console s'est arrêtée, raison : {type(e)}")
+        style.showStyledTitleCyan(f"La console s'est arrêtée, raison : {type(e)}")
         sys.exit()

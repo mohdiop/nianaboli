@@ -1,4 +1,4 @@
-import connexion
+import connexion, style, os
 import models
 from datetime import datetime
 
@@ -15,7 +15,8 @@ def creation_depense(id_createur_depense, id_groupe):
     if not est_admin:
         return " Seul un administrateur peut créer une dépense."
 
-    print("=== Création d'une dépense ===")
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitleCyan("Création Dépense")
     titre = input("Titre de la dépense : ")
     description = input("Description de la dépense : ")
     

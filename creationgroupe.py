@@ -3,7 +3,7 @@ from datetime import datetime
 
 def creationGroupe(user: models.UtilisateurInfo):
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Création de groupe")
+    style.showStyledTitleCyan("Création de groupe")
     nom = input("Le nom de votre groupe de dépense : ")
     groupe = user.creerGroupe(nom)
 

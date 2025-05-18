@@ -2,7 +2,7 @@ import connexion, models, re, bcrypt, style, os
 
 def creationProcess(): 
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Inscription")
+    style.showStyledTitleCyan("Inscription")
     prenom = input("Votre prénom : ")
     while(prenom == ""):
         print("Le prénom ne peut pas être vide!")

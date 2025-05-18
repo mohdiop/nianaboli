@@ -2,7 +2,7 @@ import createUser, sys, models, bcrypt, style, os
 
 def login():
     os.system('clear' if os.name == 'posix' else 'cls')
-    style.showStyledTitle("Connexion")
+    style.showStyledTitleCyan("Connexion")
     telephone = input("Votre numéro de téléphone: ")
     utilisateur = createUser.getUserByTel(telephone)
     while(utilisateur is None):

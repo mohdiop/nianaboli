@@ -1,6 +1,6 @@
-import connexion  # Connexion SQLite3
+import connexion, os, style # Connexion SQLite3
 cursor = connexion.cursor
-def valid_paiement(id_utilisateur, id_groupe):
+def valid_paiement(id_utilisateur, id_groupe, idDepense):
 
 # Vérifier que l'utilisateur est administrateur du groupe
     cursor.execute("""
@@ -20,15 +20,18 @@ def valid_paiement(id_utilisateur, id_groupe):
         FROM paiement
         INNER JOIN utilisateur ON utilisateur.id = paiement.idUtilisateur
         INNER JOIN depense ON depense.id = paiement.idDepense
-        WHERE paiement.estValide = 0
-    """)
+        WHERE paiement.estValide = 0 AND depense.id = ? AND depense.idGroupe = ?
+    """, (idDepense, id_groupe))
     resultats = cursor.fetchall()
 
+    os.system('clear' if os.name == 'posix' else 'cls')
+    style.showStyledTitleCyan("Liste des paiements")
+    
     if not resultats:
         print("Aucun paiement à valider.")
         return
 
-    print("\n--- Liste des paiements à valider ---")
+    
     for i, paiement in enumerate(resultats, start=1):
         print(f"\nPaiement n°{i}")
         print(f"Nom du redevable     : {paiement[4]}")
@@ -38,10 +41,10 @@ def valid_paiement(id_utilisateur, id_groupe):
         print(f"Titre de la dépense  : {paiement[5]}")
         print(f"Description dépense  : {paiement[6]}")
 
-    print("-------------------------------------")
-    choix = input("Numéro du paiement à valider (ou '2' pour quitter) : ")
+    print("-------------------------------------------------------------------------------------")
+    choix = input("Numéro du paiement à valider (ou 0 pour quitter) : ")
 
-    if choix.lower() == '2':
+    if choix.lower() == '0':
         return
 
     try:
