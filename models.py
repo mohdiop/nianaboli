@@ -73,13 +73,13 @@ class Groupe:
         connexion.con.execute("UPDATE groupe SET nom = ? WHERE id = ?", (nom, self.id))
 
 class Depense:
-    repartition = []
     def __init__(self, idGroupe, montant, titre, description,  dateCreation):
         self.idGroupe = idGroupe
         self.titre = titre
         self.montant = montant
         self.description = description
         self.dateCreation = dateCreation
+        self.repartitions = []
 
     def setId(self, id):
         self.id = id
