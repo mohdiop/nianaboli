@@ -22,7 +22,7 @@ def adminDashboard(admin: models.Administrateur):
     print("1.) Lister tous les groupes\n2.) Lister les utilisateurs\n3.) Changer le mot de passe d'un utilisateur\n4.) Voir historique des changements de mot de passe \n5.) Se déconnecter\n")
 
     choix = int(input("Votre choix : "))
-    while(choix not in (1, 2, 3, 4)):
+    while(choix not in (1, 2, 3, 4, 5)):
         print("Choix invalide!\n")
         choix = int(input("Votre choix : "))
 
